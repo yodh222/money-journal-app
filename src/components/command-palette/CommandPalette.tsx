@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useShortcut } from '@/hooks/useShortcut';
 import { Search, PlusCircle, ArrowRightLeft, Settings } from 'lucide-react';
 import { parseQuickInput } from '@/lib/parser';
+import { supabase } from '@/lib/supabaseClient';
 
 export default function CommandPalette() {
   const [isOpen, setIsOpen] = useState(false);
@@ -42,12 +43,57 @@ export default function CommandPalette() {
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!parseResult || !parseResult.amount) return;
     
-    console.log('Saved to DB:', parseResult);
-    alert(`Tersimpan!\nNominal: Rp ${parseResult.amount}\nKategori: ${parseResult.categoryHint || 'Lainnya'}\nTags: ${parseResult.tags.join(' ')}\nNotes: ${parseResult.notes}`);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        alert('Anda belum login!');
+        return;
+      }
+
+      // Fetch first wallet
+      const { data: wallets } = await supabase.from('wallets').select('id').eq('user_id', session.user.id).limit(1);
+      const walletId = wallets?.[0]?.id;
+
+      if (!walletId) {
+        alert('Gagal: Anda belum memiliki dompet/wallet.');
+        return;
+      }
+
+      // Find or create category
+      let categoryId = null;
+      if (parseResult.categoryHint) {
+        const { data: cats } = await supabase.from('categories').select('id').eq('name', parseResult.categoryHint).limit(1);
+        if (cats && cats.length > 0) {
+          categoryId = cats[0].id;
+        } else {
+          // Provide a fallback category if not found (in a real app, you'd create it)
+          const { data: anyCat } = await supabase.from('categories').select('id').limit(1);
+          categoryId = anyCat?.[0]?.id;
+        }
+      }
+
+      // Insert transaction
+      const { error } = await supabase.from('transactions').insert({
+        user_id: session.user.id,
+        wallet_id: walletId,
+        category_id: categoryId, // This might be null if there are no categories
+        amount: parseResult.amount,
+        notes: parseResult.notes,
+        tags: parseResult.tags,
+      });
+
+      if (error) throw error;
+      
+      alert(`Tersimpan!\nNominal: Rp ${parseResult.amount}\nKategori: ${parseResult.categoryHint || 'Lainnya'}`);
+      
+    } catch (err: any) {
+      console.error(err);
+      alert('Gagal menyimpan transaksi: ' + err.message);
+    }
     
     setIsOpen(false);
     setInputValue('');

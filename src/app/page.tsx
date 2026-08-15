@@ -1,9 +1,40 @@
-import React from 'react';
-import { Wallet, ArrowUpRight, ArrowDownRight, Plus, BookOpen } from 'lucide-react';
+'use client';
+
+import React, { useEffect } from 'react';
+import { Wallet, ArrowUpRight, ArrowDownRight, Plus, BookOpen, Loader2 } from 'lucide-react';
 import CashFlowChart from '@/components/dashboard/CashFlowChart';
 import DragDropArea from '@/components/dashboard/DragDropArea';
+import { useSupabaseData } from '@/hooks/useSupabaseData';
+import { useRouter } from 'next/navigation';
 
 export default function Dashboard() {
+  const router = useRouter();
+  const { session, loading, totalBalance, incomeThisMonth, expenseThisMonth } = useSupabaseData();
+
+  useEffect(() => {
+    // Basic auth protection on client side
+    if (!loading && !session) {
+      router.push('/login');
+    }
+  }, [session, loading, router]);
+
+  const formatIDR = (value: number) => {
+    return new Intl.NumberFormat('id-ID', {
+      style: 'currency',
+      currency: 'IDR',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(value);
+  };
+
+  if (loading || !session) {
+    return (
+      <div className="min-h-screen bg-[#09090B] flex items-center justify-center">
+        <Loader2 className="h-8 w-8 text-indigo-500 animate-spin" />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[#09090B] text-[#FAFAFA] grid grid-cols-[240px_1fr_360px] h-screen overflow-hidden">
       
@@ -17,9 +48,9 @@ export default function Dashboard() {
             <span className="font-bold text-lg tracking-tight">MoneyJournal</span>
           </div>
           <nav className="space-y-2">
-            <a href="#" className="flex items-center gap-3 px-3 py-2 rounded-md bg-[#27272A] text-white text-sm font-medium transition-all">📌 Dashboard</a>
-            <a href="#" className="flex items-center gap-3 px-3 py-2 rounded-md text-zinc-400 hover:bg-[#27272A] hover:text-white text-sm font-medium transition-all">📊 Analytics</a>
-            <a href="#" className="flex items-center gap-3 px-3 py-2 rounded-md text-zinc-400 hover:bg-[#27272A] hover:text-white text-sm font-medium transition-all">⚙️ Settings</a>
+            <a href="/" className="flex items-center gap-3 px-3 py-2 rounded-md bg-[#27272A] text-white text-sm font-medium transition-all">📌 Dashboard</a>
+            <a href="/analytics" className="flex items-center gap-3 px-3 py-2 rounded-md text-zinc-400 hover:bg-[#27272A] hover:text-white text-sm font-medium transition-all">📊 Analytics</a>
+            <a href="/settings" className="flex items-center gap-3 px-3 py-2 rounded-md text-zinc-400 hover:bg-[#27272A] hover:text-white text-sm font-medium transition-all">⚙️ Settings</a>
           </nav>
         </div>
         
@@ -37,7 +68,7 @@ export default function Dashboard() {
       <main className="p-8 space-y-8 overflow-y-auto">
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">Halo, Developer!</h1>
+            <h1 className="text-2xl font-bold tracking-tight">Halo, {session.user?.user_metadata?.full_name?.split(' ')[0] || 'Pengguna'}!</h1>
             <p className="text-sm text-zinc-400 mt-1">Berikut rangkuman arus keuangan Anda bulan ini.</p>
           </div>
           <button className="flex items-center gap-2 bg-indigo-500 hover:bg-indigo-600 text-white font-medium text-sm px-4 py-2.5 rounded-lg shadow-lg shadow-indigo-500/20 transition-all active:scale-95">
@@ -54,7 +85,7 @@ export default function Dashboard() {
                 <Wallet className="h-4 w-4 text-indigo-400" />
               </div>
             </div>
-            <p className="text-2xl font-bold tracking-tight">Rp 14.250.000</p>
+            <p className="text-2xl font-bold tracking-tight">{formatIDR(totalBalance || 14250000)}</p>
           </div>
           <div className="bg-[#18181B] border border-[#27272A] p-6 rounded-xl space-y-3 hover:border-zinc-700 transition-colors">
             <div className="flex justify-between items-center text-zinc-400 text-xs font-medium">
@@ -63,7 +94,7 @@ export default function Dashboard() {
                 <ArrowUpRight className="h-4 w-4 text-emerald-400" />
               </div>
             </div>
-            <p className="text-2xl font-bold tracking-tight text-emerald-400">Rp 8.000.000</p>
+            <p className="text-2xl font-bold tracking-tight text-emerald-400">{formatIDR(incomeThisMonth || 8000000)}</p>
           </div>
           <div className="bg-[#18181B] border border-[#27272A] p-6 rounded-xl space-y-3 hover:border-zinc-700 transition-colors">
             <div className="flex justify-between items-center text-zinc-400 text-xs font-medium">
@@ -72,7 +103,7 @@ export default function Dashboard() {
                 <ArrowDownRight className="h-4 w-4 text-red-400" />
               </div>
             </div>
-            <p className="text-2xl font-bold tracking-tight text-red-400">Rp 3.420.000</p>
+            <p className="text-2xl font-bold tracking-tight text-red-400">{formatIDR(expenseThisMonth || 3420000)}</p>
           </div>
         </div>
 
