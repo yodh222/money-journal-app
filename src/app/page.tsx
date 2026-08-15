@@ -1,5 +1,7 @@
 import React from 'react';
 import { Wallet, ArrowUpRight, ArrowDownRight, Plus, BookOpen } from 'lucide-react';
+import CashFlowChart from '@/components/dashboard/CashFlowChart';
+import DragDropArea from '@/components/dashboard/DragDropArea';
 
 export default function Dashboard() {
   return (
@@ -20,8 +22,14 @@ export default function Dashboard() {
             <a href="#" className="flex items-center gap-3 px-3 py-2 rounded-md text-zinc-400 hover:bg-[#27272A] hover:text-white text-sm font-medium transition-all">⚙️ Settings</a>
           </nav>
         </div>
-        <div className="text-xs text-zinc-500 border-t border-[#27272A] pt-4 flex items-center gap-2">
-          Press <kbd className="bg-zinc-800 px-1.5 py-0.5 rounded border border-zinc-700 font-mono text-[10px] text-zinc-300">N</kbd> for quick note
+        
+        <div className="space-y-4">
+          <DragDropArea />
+          
+          <div className="text-xs text-zinc-500 border-t border-[#27272A] pt-4 flex items-center justify-between">
+            <span>Quick Input</span>
+            <kbd className="bg-zinc-800 px-1.5 py-0.5 rounded border border-zinc-700 font-mono text-[10px] text-zinc-300">N</kbd>
+          </div>
         </div>
       </aside>
 
@@ -69,15 +77,11 @@ export default function Dashboard() {
         </div>
 
         {/* MOCKUP AREA GRAFIK UTAMA */}
-        <div className="bg-[#18181B] border border-[#27272A] p-6 rounded-xl h-[340px] flex flex-col justify-center items-center text-zinc-500 space-y-4 hover:border-zinc-700 transition-colors relative overflow-hidden group">
-          <div className="absolute inset-0 bg-gradient-to-t from-[#18181B] via-transparent to-transparent z-10 pointer-events-none" />
-          {/* Simulated chart bars for visual aesthetic */}
-          <div className="flex items-end gap-3 h-32 opacity-20 group-hover:opacity-40 transition-opacity">
-            {[40, 70, 45, 90, 65, 85, 120, 50, 80, 40].map((h, i) => (
-              <div key={i} className="w-8 bg-indigo-500 rounded-t-sm" style={{ height: `${h}px` }} />
-            ))}
+        <div className="bg-[#18181B] border border-[#27272A] p-6 rounded-xl h-[340px] hover:border-zinc-700 transition-colors relative">
+          <h3 className="text-sm font-semibold tracking-wide text-zinc-300 mb-4 absolute z-10">Arus Kas Bulanan</h3>
+          <div className="pt-6 h-full w-full">
+            <CashFlowChart />
           </div>
-          <p className="text-sm font-medium z-20">[ Area Integrasi Recharts Line / Area Chart - Tren Arus Kas Bulanan ]</p>
         </div>
       </main>
 
