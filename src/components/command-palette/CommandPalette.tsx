@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useShortcut } from '@/hooks/useShortcut';
-import { Search, PlusCircle, ArrowRightRight, Settings } from 'lucide-react';
+import { Search, PlusCircle, ArrowRightLeft, Settings } from 'lucide-react';
 
 export default function CommandPalette() {
   const [isOpen, setIsOpen] = useState(false);
@@ -77,7 +77,7 @@ export default function CommandPalette() {
               Catat Pemasukan / Pengeluaran Cepat
             </button>
             <button type="button" className="w-full flex items-center px-3 py-2 text-sm text-zinc-300 hover:bg-[#27272A] hover:text-white rounded-md transition-colors text-left">
-              <ArrowRightRight className="mr-3 h-4 w-4 text-emerald-400" />
+              <ArrowRightLeft className="mr-3 h-4 w-4 text-emerald-400" />
               Transfer Antar Dompet
             </button>
             <button type="button" className="w-full flex items-center px-3 py-2 text-sm text-zinc-300 hover:bg-[#27272A] hover:text-white rounded-md transition-colors text-left">
