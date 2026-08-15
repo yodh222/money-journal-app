@@ -3,10 +3,12 @@
 import React, { useState, useEffect } from 'react';
 import { useShortcut } from '@/hooks/useShortcut';
 import { Search, PlusCircle, ArrowRightLeft, Settings } from 'lucide-react';
+import { parseQuickInput } from '@/lib/parser';
 
 export default function CommandPalette() {
   const [isOpen, setIsOpen] = useState(false);
   const [inputValue, setInputValue] = useState('');
+  const [parseResult, setParseResult] = useState<any>(null);
 
   useShortcut({
     N: () => {
@@ -18,10 +20,10 @@ export default function CommandPalette() {
     Escape: () => {
       setIsOpen(false);
       setInputValue('');
+      setParseResult(null);
     }
   });
 
-  // Focus input automatically when modal opens
   useEffect(() => {
     if (isOpen) {
       const input = document.getElementById('command-palette-input');
@@ -29,14 +31,27 @@ export default function CommandPalette() {
     }
   }, [isOpen]);
 
+  // Live parsing
+  useEffect(() => {
+    if (inputValue.trim().length > 2) {
+      setParseResult(parseQuickInput(inputValue));
+    } else {
+      setParseResult(null);
+    }
+  }, [inputValue]);
+
   if (!isOpen) return null;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Parsing input:', inputValue);
-    // TODO: AI Parser logic
+    if (!parseResult || !parseResult.amount) return;
+    
+    console.log('Saved to DB:', parseResult);
+    alert(`Tersimpan!\nNominal: Rp ${parseResult.amount}\nKategori: ${parseResult.categoryHint || 'Lainnya'}\nTags: ${parseResult.tags.join(' ')}\nNotes: ${parseResult.notes}`);
+    
     setIsOpen(false);
     setInputValue('');
+    setParseResult(null);
   };
 
   return (
@@ -65,6 +80,28 @@ export default function CommandPalette() {
               ESC
             </kbd>
           </div>
+
+          {/* Live Parser Preview */}
+          {parseResult && (
+            <div className="px-4 py-3 bg-indigo-500/10 border-b border-[#27272A] flex flex-col gap-2">
+              <div className="text-xs text-indigo-400 font-semibold uppercase tracking-wider">Preview Transaksi</div>
+              <div className="flex flex-wrap gap-2 text-sm text-zinc-300">
+                {parseResult.amount && (
+                  <span className="bg-[#27272A] px-2 py-1 rounded text-white font-medium">Rp {parseResult.amount.toLocaleString('id-ID')}</span>
+                )}
+                {parseResult.categoryHint && (
+                  <span className="bg-amber-500/20 text-amber-400 px-2 py-1 rounded capitalize">{parseResult.categoryHint}</span>
+                )}
+                {parseResult.tags.map((t: string) => (
+                  <span key={t} className="bg-emerald-500/20 text-emerald-400 px-2 py-1 rounded">{t}</span>
+                ))}
+                {parseResult.notes && (
+                  <span className="text-zinc-400 italic mt-1 w-full truncate">"{parseResult.notes}"</span>
+                )}
+              </div>
+              <div className="text-[10px] text-zinc-500 mt-1">Tekan ENTER untuk menyimpan</div>
+            </div>
+          )}
 
           {/* Quick Suggestions / Actions */}
           <div className="p-2 space-y-1 overflow-y-auto max-h-72">
