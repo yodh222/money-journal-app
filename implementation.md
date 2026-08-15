@@ -1,56 +1,99 @@
-# MoneyJournal - Dokumentasi Implementasi
+# MoneyJournal Implementation Guide
 
-Dokumen ini menjelaskan langkah-langkah teknis dan alur implementasi aplikasi web "MoneyJournal". Meskipun di-blueprint sebagai aplikasi mobile (Flutter/React Native), implementasi ini akan menggunakan **React (Vite)** bergaya *Mobile First* sebagai aplikasi web yang responsif dan sangat ringan.
+This document outlines the architectural blueprints and implementation details for the MoneyJournal Web App Desktop.
 
-## 1. Persiapan Proyek (Setup)
-Proyek diinisialisasi menggunakan Vite dengan React.
-- **Perintah**: `npm create vite@latest . -- --template react`
-- **Tujuan**: Membangun fondasi frontend yang cepat.
-- **Gaya (Styling)**: CSS Murni (Vanilla CSS) untuk kontrol penuh atas desain, memastikan antarmuka minimalis, ringan, dan tidak berlebihan.
+## 1. Project Structure
 
-## 2. Struktur Direktori
-Struktur standar untuk memisahkan komponen, halaman, dan state:
-```text
+The project uses Next.js with the App Router. The source code is located in the `src/` directory.
+
+```
 src/
-├── assets/          # Ikon dan gambar
-├── components/      # Komponen UI (Button, Card, Modal, dll)
-├── pages/           # Halaman Utama (Dashboard, Settings)
-├── hooks/           # Custom hooks (state management transaksi)
-├── styles/          # File CSS global dan utilitas
-├── App.jsx          # Komponen root aplikasi
-└── main.jsx         # Entry point aplikasi
+├── app/
+│   ├── layout.tsx         # Global layout with providers (Theme, Supabase Auth)
+│   ├── page.tsx           # Dashboard main page
+│   ├── login/page.tsx     # Authentication page
+│   └── globals.css        # Tailwind CSS and base styles
+├── components/
+│   ├── ui/                # Reusable Shadcn UI components
+│   ├── command-palette/   # Global quick-input command palette
+│   └── dashboard/         # Dashboard specific components (Charts, Summary Cards)
+├── lib/
+│   ├── supabaseClient.ts  # Supabase initialization
+│   └── utils.ts           # Helper functions (currency formatter, class merge)
+└── hooks/
+    └── useShortcut.ts     # Global keyboard event listeners
 ```
 
-## 3. Implementasi MVP (Fase 1)
+## 2. Keyboard Shortcuts Implementation
 
-### A. Komponen UI Inti
-1. **Layout Wrapper (Mobile View)**: Membuat container tengah yang meniru dimensi layar *smartphone* jika dibuka di desktop, namun *full-screen* jika dibuka di perangkat mobile.
-2. **Dashboard**: Menampilkan `Total Balance Card`, kotak ringkasan *Income* & *Expense*, serta daftar `Recent Activities`.
-3. **Bottom Navigation**: Menampung navigasi utama dan *Floating Action Button (FAB)* untuk tombol `Quick-Add (+)`.
+A global event listener `useShortcut` hook captures keystrokes without needing to focus on an input field.
 
-### B. Alur Pencatatan (Quick-Add)
-1. **Bottom Sheet Modal**: Muncul secara instan dari bawah ketika FAB ditekan.
-2. **Keypad Numerik Kustom (Opsional/Bawaan)**: Input nominal secara cepat.
-3. **Pemilihan Kategori Cepat**: Menampilkan ikon kategori dengan gaya *pills/bubble* langsung di bawah angka.
-4. **Simpan Otomatis**: Menyimpan transaksi ke *local state* dan memperbarui dashboard secara *real-time*.
+- `N` or `Ctrl/Cmd + K`: Opens the Quick Input modal.
+- `D`: Routes to `/dashboard`
+- `A`: Routes to `/analytics`
+- `S`: Routes to `/settings`
+- `Esc`: Closes active modals.
 
-### C. State Management
-Sementara sebelum diintegrasikan dengan database backend (Supabase), aplikasi akan menggunakan `React Context` dipadukan dengan `localStorage` agar data tetap tersimpan saat *browser* ditutup.
-Struktur State:
-- `balance`: Saldo berjalan.
-- `transactions`: Array objek riwayat transaksi.
-- `categories`: Array objek kategori pengeluaran dan pemasukan.
+## 3. Database Schema (Supabase PostgreSQL)
 
-## 4. Desain & Estetika (UI/UX)
-- **Warna Latar**: `#F8F9FA` (Abu-abu sangat terang).
-- **Elemen Card**: Background `#FFFFFF` dengan bayangan *soft* (`box-shadow: 0 4px 12px rgba(0,0,0,0.05)`).
-- **Tipografi**: Menggunakan font modern tanpa kait (sans-serif) dari Google Fonts seperti `Inter` atau `Plus Jakarta Sans`.
-- **Transisi**: Animasi geser (*slide-up*) untuk memunculkan Modal Quick-Add agar terasa dinamis.
+Execute the following SQL in the Supabase SQL Editor to initialize the database:
 
-## 5. Rencana Backend (Lanjutan)
-Integrasi masa depan akan memindahkan penyimpanan `localStorage` ke Supabase.
-- Tabel akan dibuat mengikuti skema di blueprint (`users`, `wallets`, `categories`, `transactions`).
-- Login akan difasilitasi dengan `Supabase Auth`.
+```sql
+-- ENABLE EXTENSION UNTUK GENERASI UUID
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
-## 6. Git & Version Control
-Semua perubahan pengembangan akan dilakukan *commit* bertahap dan diunggah ke repositori GitHub untuk memastikan manajemen versi yang baik.
+-- 1. TABEL PROFIL PENGGUNA
+CREATE TABLE public.profiles (
+    id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+    full_name VARCHAR(100) NOT NULL,
+    avatar_url TEXT,
+    base_currency VARCHAR(3) DEFAULT 'IDR',
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- 2. TABEL DOMPET / AKUN FINANSIAL
+CREATE TABLE public.wallets (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+    name VARCHAR(50) NOT NULL,
+    type VARCHAR(20) CHECK (type IN ('CASH', 'BANK_ACCOUNT', 'E_WALLET', 'CREDIT_CARD')),
+    balance NUMERIC(15, 2) DEFAULT 0.00 NOT NULL,
+    color_hex VARCHAR(7) DEFAULT '#6366F1',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- 3. TABEL KATEGORI TRANSAKSI
+CREATE TABLE public.categories (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE,
+    name VARCHAR(50) NOT NULL,
+    type VARCHAR(10) CHECK (type IN ('INCOME', 'EXPENSE')) NOT NULL,
+    icon_name VARCHAR(30) DEFAULT 'wallet',
+    budget_limit NUMERIC(15, 2) DEFAULT 0.00,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- 4. TABEL INTI TRANSAKSI & JURNAL
+CREATE TABLE public.transactions (
+    id BIGSERIAL PRIMARY KEY,
+    user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+    wallet_id UUID NOT NULL REFERENCES public.wallets(id) ON DELETE RESTRICT,
+    category_id UUID NOT NULL REFERENCES public.categories(id) ON DELETE RESTRICT,
+    amount NUMERIC(15, 2) NOT NULL,
+    notes TEXT,
+    tags VARCHAR(50)[],
+    transaction_date DATE DEFAULT CURRENT_DATE NOT NULL,
+    is_recurring BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- INDEKS OPTIMASI QUERY UNTUK PENCARIAN & FILTER DASHBOARD FAST (PENTING!)
+CREATE INDEX idx_transactions_user_date ON public.transactions(user_id, transaction_date DESC);
+CREATE INDEX idx_transactions_category ON public.transactions(category_id);
+```
+
+## 4. UI/UX Principles
+
+- **Color Palette:** Slate-950/Zinc-900 for dark mode backgrounds. Primary accents in Indigo (`#6366F1`), Success in Emerald (`#10B981`), Danger in Red (`#EF4444`).
+- **Typography:** Inter sans-serif font applied globally.
+- **Layout:** CSS Grid with `240px 1fr 360px` columns. Central column handles scrolling if necessary, maintaining a fixed sidebar structure.

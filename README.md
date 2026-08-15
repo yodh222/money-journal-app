@@ -1,65 +1,36 @@
-# MoneyJournal
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-MoneyJournal adalah aplikasi pencatatan keuangan cerdas yang didesain untuk memangkas kerumitan. Dengan pendekatan minimalis, Anda dapat mencatat pemasukan dan pengeluaran dalam waktu kurang dari 5 detik namun tetap mendapatkan laporan dan visualisasi yang mendetail.
+## Getting Started
 
-## 🚀 Fitur Utama
+First, run the development server:
 
-### Fase 1: MVP (Minimum Viable Product)
-- **Quick-Add Button**: Pencatatan instan dengan tombol "+" di navigasi bawah.
-- **Multi-Wallet/Account**: Manajemen saldo untuk Uang Tunai, Rekening Bank, dan E-Wallet secara terpisah.
-- **Flexible Categorization**: Kustomisasi kategori pengeluaran dan pemasukan sesuai kebutuhan.
-- **Real-time Dashboard**: Pantau Saldo Total, Pemasukan, dan Pengeluaran bulanan secara langsung.
+```bash
+npm run dev
+# or
+yarn dev
+# or
+pnpm dev
+# or
+bun dev
+```
 
-### Fase 2: Analisis & Kontrol (Mendatang)
-- **Dynamic Pie Chart**: Visualisasi aliran uang interaktif.
-- **Smart Budgeting Bars**: Pemantauan sisa anggaran dengan indikator warna (Hijau, Kuning, Merah).
-- **Daily Journal Notes**: Tambahkan catatan personal pada setiap transaksi.
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-### Fase 3: Otomatisasi & Sistem Cerdas (Mendatang)
-- **Recurring Transactions**: Jadwalkan transaksi rutin (sewa, tagihan bulanan).
-- **AI Smart-Text Input**: Ekstraksi nominal dan kategori dari satu kalimat teks bebas.
-- **Data Export**: Unduh riwayat jurnal ke format `.xlsx` atau `.csv`.
+You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
-## 💻 Tech Stack
+This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
-Proyek ini dibangun sebagai **Web Application** modern bergaya mobile (PWA), dengan rekomendasi stack sebagai berikut:
-- **Frontend**: React (Vite)
-- **Styling**: Vanilla CSS (Mobile-first design)
-- **State Management**: React Context API atau Zustand
-- **Backend/Database**: Supabase (PostgreSQL) - *Bisa diintegrasikan lebih lanjut*
+## Learn More
 
-## 🎨 Desain & UI
-- **Tema Utama**: Clean, Minimalis, dengan banyak White Space.
-- **Warna Dasar**: Putih (#FFFFFF) & Abu-abu Terang (#F8F9FA).
-- **Warna Teks**: Hitam Arang (#1A1A1A).
-- **Aksen Transaksi**: Hijau (#2ECC71) untuk Pemasukan, Merah (#E74C3C) untuk Pengeluaran.
-- **Aksen Tombol**: Biru Royal (#3498DB) / Ungu Indigo (#6C5CE7).
+To learn more about Next.js, take a look at the following resources:
 
-## 🚀 Cara Menjalankan Proyek
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
 
-1. **Clone repository ini**
-   ```bash
-   git clone <repo-url>
-   ```
-2. **Masuk ke direktori proyek**
-   ```bash
-   cd moneyjournal
-   ```
-3. **Install dependensi**
-   ```bash
-   npm install
-   ```
-4. **Jalankan server pengembangan**
-   ```bash
-   npm run dev
-   ```
+You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
 
-## 🗄️ Skema Database
+## Deploy on Vercel
 
-- **users**: Data pengguna.
-- **wallets**: Dompet/rekening (Tunai, Bank, dll).
-- **categories**: Kategori pemasukan/pengeluaran (Makanan, Gaji, dll).
-- **transactions**: Inti catatan jurnal relasional antara dompet dan kategori.
+The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
----
-*Dibuat untuk mencatat keuangan tanpa ribet.*
+Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
