@@ -14,7 +14,10 @@ export default function Dashboard() {
   useEffect(() => {
     // Basic auth protection on client side
     if (!loading && !session) {
-      router.push('/login');
+      const hash = typeof window !== 'undefined' ? window.location.hash : '';
+      if (!hash.includes('access_token')) {
+        router.push('/login');
+      }
     }
   }, [session, loading, router]);
 

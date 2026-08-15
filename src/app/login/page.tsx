@@ -6,6 +6,7 @@ import { BookOpen } from 'lucide-react';
 
 export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
+  const [email, setEmail] = useState('');
 
   const handleGoogleLogin = async () => {
     setIsLoading(true);
@@ -17,8 +18,30 @@ export default function LoginPage() {
         }
       });
       if (error) throw error;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error logging in:', error);
+      alert('Login Google Gagal: ' + error.message);
+      setIsLoading(false);
+    }
+  };
+
+  const handleMagicLink = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email) return;
+    setIsLoading(true);
+    try {
+      const { error } = await supabase.auth.signInWithOtp({
+        email,
+        options: {
+          emailRedirectTo: `${window.location.origin}/`,
+        }
+      });
+      if (error) throw error;
+      alert('Tautan masuk (Magic Link) telah dikirim ke email Anda! Silakan cek kotak masuk.');
+    } catch (error: any) {
+      console.error('Error magic link:', error);
+      alert('Gagal mengirim Magic Link: ' + error.message);
+    } finally {
       setIsLoading(false);
     }
   };
@@ -36,7 +59,7 @@ export default function LoginPage() {
           </div>
         </div>
 
-        <div className="bg-[#18181B] border border-[#27272A] rounded-2xl p-6 shadow-2xl">
+        <div className="bg-[#18181B] border border-[#27272A] rounded-2xl p-6 shadow-2xl space-y-6">
           <button
             onClick={handleGoogleLogin}
             disabled={isLoading}
@@ -54,6 +77,35 @@ export default function LoginPage() {
             )}
             {isLoading ? 'Connecting...' : 'Sign in with Google'}
           </button>
+
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-[#27272A]"></div>
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-[#18181B] px-2 text-zinc-500">Atau gunakan email</span>
+            </div>
+          </div>
+
+          <form onSubmit={handleMagicLink} className="space-y-4">
+            <div>
+              <input 
+                type="email" 
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Masukkan email Anda..." 
+                className="w-full bg-[#09090B] border border-[#27272A] rounded-xl px-4 py-3 text-sm text-zinc-200 focus:outline-none focus:border-indigo-500 transition-colors"
+              />
+            </div>
+            <button
+              type="submit"
+              disabled={isLoading || !email}
+              className="w-full bg-indigo-500 hover:bg-indigo-600 text-white font-medium px-4 py-3 rounded-xl transition-all disabled:opacity-50"
+            >
+              Kirim Magic Link
+            </button>
+          </form>
           
           <p className="mt-6 text-center text-xs text-zinc-500">
             By signing in, you agree to our Terms of Service and Privacy Policy.
