@@ -6,13 +6,14 @@ import CashFlowChart from '@/components/dashboard/CashFlowChart';
 import DragDropArea from '@/components/dashboard/DragDropArea';
 import TransactionModal from '@/components/dashboard/TransactionModal';
 import AIInsights from '@/components/dashboard/AIInsights';
+import OnboardingEmptyState from '@/components/dashboard/OnboardingEmptyState';
 import { useSupabaseData } from '@/hooks/useSupabaseData';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 
 export default function Dashboard() {
   const router = useRouter();
-  const { session, loading, totalBalance, incomeThisMonth, expenseThisMonth, transactions, categories } = useSupabaseData();
+  const { session, loading, totalBalance, incomeThisMonth, expenseThisMonth, transactions, categories, wallets } = useSupabaseData();
   const [journalNote, setJournalNote] = useState('');
 
   useEffect(() => {
@@ -116,10 +117,14 @@ export default function Dashboard() {
           <TransactionModal />
         </div>
 
-        <AIInsights />
+        {wallets.length === 0 ? (
+          <OnboardingEmptyState />
+        ) : (
+          <>
+            <AIInsights />
 
-        {/* BARIS KARTU SALDO & RINGKASAN */}
-        <div className="grid grid-cols-3 gap-6">
+            {/* BARIS KARTU SALDO & RINGKASAN */}
+            <div className="grid grid-cols-3 gap-6">
           <div className="bg-[#18181B] border border-[#27272A] p-6 rounded-xl space-y-3 hover:border-zinc-700 transition-colors">
             <div className="flex justify-between items-center text-zinc-400 text-xs font-medium">
               Total Saldo Bersih 
@@ -178,6 +183,8 @@ export default function Dashboard() {
             )}
           </div>
         </div>
+          </>
+        )}
       </main>
 
       {/* KOLOM 3: SIDEBAR PANEL KANAN (JURNAL & ANGGARAN) */}
