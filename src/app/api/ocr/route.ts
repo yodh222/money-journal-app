@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { ocrService } from '@/services/ocr.service';
 
+export const maxDuration = 60; // Izinkan fungsi berjalan hingga 60 detik
+
 export async function POST(req: NextRequest) {
   try {
     let base64Image = '';
