@@ -94,23 +94,9 @@ export const telegramService = {
       const base64Image = Buffer.from(arrayBuffer).toString('base64');
       const mimeType = 'image/jpeg'; // Telegram usually sends JPG
 
-      // 3. Panggil Gemini AI OCR (Gunakan fungsi yang sudah kita buat sebelumnya)
-      // We'll construct a mock request to our own API or import the OCR logic.
-      // Since it's server-side, it's better to isolate the OCR logic to a reusable function.
-      // For now, we'll fetch our absolute internal route, OR abstract OCR logic.
-      const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
-      
-      const ocrResponse = await fetch(`${appUrl}/api/ocr`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ image: `data:${mimeType};base64,${base64Image}` })
-      });
-
-      if (!ocrResponse.ok) {
-        throw new Error('Gagal menganalisis gambar dengan AI.');
-      }
-
-      const parsedData = await ocrResponse.json();
+      // 3. Panggil Gemini AI OCR langsung lewat Service
+      const { ocrService } = await import('@/services/ocr.service');
+      const parsedData = await ocrService.processReceiptImage(base64Image, mimeType);
 
       // 4. Cari dompet default (atau dompet pertama milik user)
       const supabaseAdmin = getAdminSupabase();
