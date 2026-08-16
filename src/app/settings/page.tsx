@@ -6,9 +6,11 @@ import { useSupabaseData } from '@/hooks/useSupabaseData';
 import { supabase } from '@/lib/supabaseClient';
 import { useRouter } from 'next/navigation';
 import WalletModal from '@/components/settings/WalletModal';
+import CategoryModal from '@/components/settings/CategoryModal';
+import { Tag } from 'lucide-react';
 
 export default function SettingsPage() {
-  const { session, loading, wallets } = useSupabaseData();
+  const { session, loading, wallets, categories } = useSupabaseData();
   const router = useRouter();
   const [openTab, setOpenTab] = useState<string | null>(null);
 
@@ -109,6 +111,35 @@ export default function SettingsPage() {
                     <div className="text-sm text-zinc-500">Belum ada dompet.</div>
                   )}
                   <WalletModal />
+                </div>
+              )}
+
+              <button onClick={() => toggleTab('category')} className="w-full flex items-center justify-between p-4 hover:bg-[#27272A] transition-colors border-b border-[#27272A]">
+                <div className="flex items-center gap-3">
+                  <Tag className="h-5 w-5 text-zinc-400" />
+                  <span className="text-sm font-medium">Manajemen Kategori</span>
+                </div>
+                {openTab === 'category' ? <ChevronUp className="h-4 w-4 text-zinc-500" /> : <ChevronDown className="h-4 w-4 text-zinc-500" />}
+              </button>
+              {openTab === 'category' && (
+                <div className="p-4 bg-[#09090B] border-b border-[#27272A] space-y-3">
+                  <h4 className="text-xs font-bold text-zinc-500 uppercase tracking-wider">Daftar Kategori</h4>
+                  {categories && categories.length > 0 ? (
+                    categories.map(c => (
+                      <div key={c.id} className="flex justify-between items-center p-3 bg-[#18181B] rounded-lg border border-[#27272A]">
+                        <div className="flex flex-col">
+                          <span className="text-sm font-medium">{c.name}</span>
+                          <span className="text-xs text-zinc-500">{c.type === 'INCOME' ? 'Pemasukan' : 'Pengeluaran'}</span>
+                        </div>
+                        {c.budget_limit > 0 && (
+                          <span className="text-xs font-medium text-amber-400 bg-amber-400/10 px-2 py-1 rounded">Limit: Rp {Number(c.budget_limit).toLocaleString('id-ID')}</span>
+                        )}
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-sm text-zinc-500">Belum ada kategori.</div>
+                  )}
+                  <CategoryModal />
                 </div>
               )}
 
