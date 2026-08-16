@@ -22,7 +22,10 @@ export const aiInsightService = {
       .eq('ledger_id', ledgerId)
       .order('created_at', { ascending: false });
 
-    if (error) throw error;
+    if (error) {
+      if (error.message.includes('Could not find the table')) return [];
+      throw error;
+    }
     return data || [];
   },
 
@@ -40,22 +43,34 @@ export const aiInsightService = {
     const ledgerId = await ledgerService.getActiveLedgerId();
     if (!ledgerId) return;
 
-    const { data: existing } = await supabase
-      .from('ai_insights')
-      .select('id')
-      .eq('ledger_id', ledgerId)
-      .limit(1);
+    try {
+      const { data: existing, error } = await supabase
+        .from('ai_insights')
+        .select('id')
+        .eq('ledger_id', ledgerId)
+        .limit(1);
 
-    if (!existing || existing.length === 0) {
-      await supabase.from('ai_insights').insert({
-        ledger_id: ledgerId,
-        insight_type: 'SAVING_OPPORTUNITY',
-        title: 'Pengeluaran Makanan Terlalu Tinggi',
-        description: 'Anda telah menghabiskan 40% lebih banyak dari bulan lalu untuk kategori Makanan. Cobalah memasak di rumah minggu ini.',
-        actionable_steps: [
-          { label: 'Setel Target Anggaran Makanan', action: 'SET_BUDGET' }
-        ]
-      });
+      if (error) {
+        if (error.message.includes('Could not find the table')) {
+          console.warn('ai_insights table missing, skipping insights generation.');
+          return;
+        }
+        throw error;
+      }
+
+      if (!existing || existing.length === 0) {
+        await supabase.from('ai_insights').insert({
+          ledger_id: ledgerId,
+          insight_type: 'SAVING_OPPORTUNITY',
+          title: 'Pengeluaran Makanan Terlalu Tinggi',
+          description: 'Anda telah menghabiskan 40% lebih banyak dari bulan lalu untuk kategori Makanan. Cobalah memasak di rumah minggu ini.',
+          actionable_steps: [
+            { label: 'Setel Target Anggaran Makanan', action: 'SET_BUDGET' }
+          ]
+        });
+      }
+    } catch (err) {
+      console.error('generateMockInsightIfNeeded error:', err);
     }
   }
 };

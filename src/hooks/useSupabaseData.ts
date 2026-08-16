@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 
+import { toast } from 'sonner';
+
 export function useSupabaseData() {
   const [session, setSession] = useState<any>(null);
   const [transactions, setTransactions] = useState<any[]>([]);
@@ -39,16 +41,26 @@ export function useSupabaseData() {
     setLoading(true);
     try {
       // 1. Dapatkan ledger_id (buku kas) aktif
-      const { data: ledgerMember } = await supabase
+      const { data: ledgerMember, error: ledgerError } = await supabase
         .from('ledger_members')
         .select('ledger_id')
         .eq('user_id', user.id)
         .limit(1);
       
+      if (ledgerError) {
+        if (ledgerError.message.includes('Could not find the table')) {
+          console.error('DATABASE NOT SETUP:', ledgerError.message);
+          toast.error('Gagal: Tabel database belum dibuat. Silakan jalankan SQL migration di Supabase Dashboard Anda.');
+        } else {
+          console.error('Ledger Error:', ledgerError);
+        }
+        setLoading(false);
+        return;
+      }
+
       const ledgerId = ledgerMember?.[0]?.ledger_id;
 
       if (!ledgerId) {
-        // Jika belum ada ledger (bisa terjadi saat delay trigger), tidak perlu fetch sisanya dulu
         setLoading(false);
         return;
       }
