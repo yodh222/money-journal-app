@@ -10,7 +10,7 @@ import CategoryModal from '@/components/settings/CategoryModal';
 import { Tag } from 'lucide-react';
 
 export default function SettingsPage() {
-  const { session, loading, wallets, categories } = useSupabaseData();
+  const { session, loading, wallets, categories, budgets } = useSupabaseData();
   const router = useRouter();
   const [openTab, setOpenTab] = useState<string | null>(null);
 
@@ -125,17 +125,20 @@ export default function SettingsPage() {
                 <div className="p-4 bg-[#09090B] border-b border-[#27272A] space-y-3">
                   <h4 className="text-xs font-bold text-zinc-500 uppercase tracking-wider">Daftar Kategori</h4>
                   {categories && categories.length > 0 ? (
-                    categories.map(c => (
-                      <div key={c.id} className="flex justify-between items-center p-3 bg-[#18181B] rounded-lg border border-[#27272A]">
-                        <div className="flex flex-col">
-                          <span className="text-sm font-medium">{c.name}</span>
-                          <span className="text-xs text-zinc-500">{c.type === 'INCOME' ? 'Pemasukan' : 'Pengeluaran'}</span>
+                    categories.map(c => {
+                      const budget = budgets?.find(b => b.category_id === c.id);
+                      return (
+                        <div key={c.id} className="flex justify-between items-center p-3 bg-[#18181B] rounded-lg border border-[#27272A]">
+                          <div className="flex flex-col">
+                            <span className="text-sm font-medium">{c.name}</span>
+                            <span className="text-xs text-zinc-500">{c.type === 'INCOME' ? 'Pemasukan' : 'Pengeluaran'}</span>
+                          </div>
+                          {budget && (
+                            <span className="text-xs font-medium text-amber-400 bg-amber-400/10 px-2 py-1 rounded">Limit: Rp {Number(budget.amount).toLocaleString('id-ID')}</span>
+                          )}
                         </div>
-                        {c.budget_limit > 0 && (
-                          <span className="text-xs font-medium text-amber-400 bg-amber-400/10 px-2 py-1 rounded">Limit: Rp {Number(c.budget_limit).toLocaleString('id-ID')}</span>
-                        )}
-                      </div>
-                    ))
+                      );
+                    })
                   ) : (
                     <div className="text-sm text-zinc-500">Belum ada kategori.</div>
                   )}

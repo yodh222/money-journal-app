@@ -10,6 +10,7 @@ export function useSupabaseData() {
   const [transactions, setTransactions] = useState<any[]>([]);
   const [wallets, setWallets] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
+  const [budgets, setBudgets] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Stats
@@ -85,7 +86,15 @@ export function useSupabaseData() {
       
       if (categoriesData) setCategories(categoriesData);
 
-      // 4. Fetch Transactions berdasarkan ledger_id
+      // 4. Fetch Budgets berdasarkan ledger_id
+      const { data: budgetsData } = await supabase
+        .from('budgets')
+        .select('*, categories(name)')
+        .eq('ledger_id', ledgerId);
+      
+      if (budgetsData) setBudgets(budgetsData);
+
+      // 5. Fetch Transactions berdasarkan ledger_id
       const { data: txData } = await supabase
         .from('transactions')
         .select(`*, categories(type, name)`)
@@ -128,6 +137,7 @@ export function useSupabaseData() {
     loading,
     wallets,
     categories,
+    budgets,
     transactions,
     totalBalance,
     incomeThisMonth,

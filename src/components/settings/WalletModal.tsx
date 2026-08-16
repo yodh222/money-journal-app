@@ -71,13 +71,7 @@ export default function WalletModal() {
             <Label>Tipe Dompet</Label>
             <Select value={type} onValueChange={(val) => setType(val || 'CASH')}>
               <SelectTrigger className="bg-[#27272A] border-[#27272A] text-white">
-                <span className="flex flex-1 text-left line-clamp-1">
-                  {type === 'CASH' && 'Tunai (Cash)'}
-                  {type === 'BANK_ACCOUNT' && 'Rekening Bank'}
-                  {type === 'E_WALLET' && 'E-Wallet'}
-                  {type === 'CREDIT_CARD' && 'Kartu Kredit'}
-                  {!type && 'Pilih tipe'}
-                </span>
+                <SelectValue placeholder="Pilih tipe" />
               </SelectTrigger>
               <SelectContent className="bg-[#18181B] border-[#27272A] text-white">
                 <SelectItem value="CASH">Tunai (Cash)</SelectItem>

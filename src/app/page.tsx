@@ -13,7 +13,7 @@ import { toast } from 'sonner';
 
 export default function Dashboard() {
   const router = useRouter();
-  const { session, loading, totalBalance, incomeThisMonth, expenseThisMonth, transactions, categories, wallets } = useSupabaseData();
+  const { session, loading, totalBalance, incomeThisMonth, expenseThisMonth, transactions, categories, wallets, budgets } = useSupabaseData();
   const [journalNote, setJournalNote] = useState('');
 
   useEffect(() => {
@@ -192,29 +192,28 @@ export default function Dashboard() {
         <div>
           <h3 className="text-xs font-bold tracking-wider text-zinc-500 uppercase mb-5">🎯 Batas Anggaran</h3>
           <div className="space-y-5">
-            {categories.filter(c => c.type === 'EXPENSE' && c.budget_limit && c.budget_limit > 0).map(cat => {
-              const spent = transactions.filter((t: any) => t.category_id === cat.id && new Date(t.transaction_date).getMonth() === new Date().getMonth()).reduce((sum: number, t: any) => sum + Number(t.amount), 0);
-              const percentage = Math.min(Math.round((spent / cat.budget_limit) * 100), 100);
+            {budgets && budgets.length > 0 ? budgets.map(budget => {
+              const spent = transactions.filter((t: any) => t.category_id === budget.category_id && new Date(t.transaction_date).getMonth() === new Date().getMonth()).reduce((sum: number, t: any) => sum + Number(t.amount), 0);
+              const percentage = Math.min(Math.round((spent / budget.amount) * 100), 100);
               let colorClass = 'bg-emerald-500';
               if (percentage > 80) colorClass = 'bg-red-500';
               else if (percentage > 50) colorClass = 'bg-amber-500';
 
               return (
-                <div key={cat.id} className="space-y-2">
+                <div key={budget.id} className="space-y-2">
                   <div className="flex justify-between text-sm font-medium">
-                    <span className="text-zinc-200 flex items-center gap-2">{cat.name}</span>
+                    <span className="text-zinc-200 flex items-center gap-2">{budget.categories?.name || 'Total'}</span>
                     <span className="text-zinc-400">{percentage}%</span>
                   </div>
                   <div className="h-1.5 w-full bg-zinc-800 rounded-full overflow-hidden">
                     <div className={`h-full ${colorClass} rounded-full transition-all duration-1000 ease-out`} style={{ width: `${percentage}%` }}></div>
                   </div>
                   <div className="text-[10px] text-zinc-500 text-right">
-                    {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(spent)} / {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(cat.budget_limit)}
+                    {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(spent)} / {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(budget.amount)}
                   </div>
                 </div>
               );
-            })}
-            {categories.filter(c => c.type === 'EXPENSE' && c.budget_limit && c.budget_limit > 0).length === 0 && (
+            }) : (
               <div className="text-sm text-zinc-500">Belum ada batas anggaran.</div>
             )}
           </div>

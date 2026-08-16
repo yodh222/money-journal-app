@@ -5,7 +5,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger } from '@/components/ui/select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Loader2 } from 'lucide-react';
 import { supabase } from '@/lib/supabaseClient';
 import { toast } from 'sonner';
@@ -69,9 +69,7 @@ export default function CategoryModal() {
             <Label>Tipe Kategori</Label>
             <Select value={type} onValueChange={(val) => setType(val || 'EXPENSE')}>
               <SelectTrigger className="bg-[#27272A] border-[#27272A] text-white">
-                <span className="flex flex-1 text-left line-clamp-1">
-                  {type === 'EXPENSE' ? 'Pengeluaran' : type === 'INCOME' ? 'Pemasukan' : 'Pilih tipe'}
-                </span>
+                <SelectValue placeholder="Pilih tipe" />
               </SelectTrigger>
               <SelectContent className="bg-[#18181B] border-[#27272A] text-white">
                 <SelectItem value="EXPENSE">Pengeluaran</SelectItem>

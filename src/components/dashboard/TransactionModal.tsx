@@ -91,9 +91,7 @@ export default function TransactionModal() {
             <Label>Tipe Transaksi</Label>
             <Select value={type} onValueChange={(val) => setType(val || 'EXPENSE')}>
               <SelectTrigger className="bg-[#27272A] border-[#27272A]">
-                <span className="flex flex-1 text-left line-clamp-1">
-                  {type === 'EXPENSE' ? 'Pengeluaran' : type === 'INCOME' ? 'Pemasukan' : 'Pilih tipe'}
-                </span>
+                <SelectValue placeholder="Pilih tipe" />
               </SelectTrigger>
               <SelectContent className="bg-[#18181B] border-[#27272A] text-white">
                 <SelectItem value="EXPENSE">Pengeluaran</SelectItem>
@@ -106,9 +104,7 @@ export default function TransactionModal() {
             <Label>Kategori</Label>
             <Select value={categoryId} onValueChange={(val) => setCategoryId(val || '')} disabled={categories.length === 0}>
               <SelectTrigger className="bg-[#27272A] border-[#27272A]">
-                <span className="flex flex-1 text-left line-clamp-1">
-                  {categoryId ? categories.find(c => c.id === categoryId)?.name : "Pilih kategori"}
-                </span>
+                <SelectValue placeholder="Pilih kategori" />
               </SelectTrigger>
               <SelectContent className="bg-[#18181B] border-[#27272A] text-white">
                 {categories.map((c) => (
