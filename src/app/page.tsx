@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Wallet, ArrowUpRight, ArrowDownRight, Plus, BookOpen, Loader2 } from 'lucide-react';
 import CashFlowChart from '@/components/dashboard/CashFlowChart';
 import DragDropArea from '@/components/dashboard/DragDropArea';

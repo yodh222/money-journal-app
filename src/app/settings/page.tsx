@@ -1,14 +1,15 @@
 'use client';
-import React from 'react';
-import { BookOpen, User, Wallet, Bell, Shield, Loader2, LogOut } from 'lucide-react';
+import React, { useState } from 'react';
+import { BookOpen, User, Wallet, Bell, Shield, Loader2, LogOut, ChevronDown, ChevronUp } from 'lucide-react';
 import Link from 'next/link';
 import { useSupabaseData } from '@/hooks/useSupabaseData';
 import { supabase } from '@/lib/supabaseClient';
 import { useRouter } from 'next/navigation';
 
 export default function SettingsPage() {
-  const { session, loading } = useSupabaseData();
+  const { session, loading, wallets } = useSupabaseData();
   const router = useRouter();
+  const [openTab, setOpenTab] = useState<string | null>(null);
 
   if (loading) {
     return (
@@ -26,6 +27,10 @@ export default function SettingsPage() {
   const handleLogout = async () => {
     await supabase.auth.signOut();
     router.push('/login');
+  };
+
+  const toggleTab = (tab: string) => {
+    setOpenTab(openTab === tab ? null : tab);
   };
 
   return (
@@ -68,18 +73,44 @@ export default function SettingsPage() {
             </div>
             
             <div className="p-0">
-              <button className="w-full flex items-center justify-between p-4 hover:bg-[#27272A] transition-colors border-b border-[#27272A]">
+              <button onClick={() => toggleTab('profile')} className="w-full flex items-center justify-between p-4 hover:bg-[#27272A] transition-colors border-b border-[#27272A]">
                 <div className="flex items-center gap-3">
                   <User className="h-5 w-5 text-zinc-400" />
                   <span className="text-sm font-medium">Data Pribadi</span>
                 </div>
+                {openTab === 'profile' ? <ChevronUp className="h-4 w-4 text-zinc-500" /> : <ChevronDown className="h-4 w-4 text-zinc-500" />}
               </button>
-              <button className="w-full flex items-center justify-between p-4 hover:bg-[#27272A] transition-colors border-b border-[#27272A]">
+              {openTab === 'profile' && (
+                <div className="p-4 bg-[#09090B] border-b border-[#27272A]">
+                  <p className="text-sm text-zinc-400">Nama: {fullName}</p>
+                  <p className="text-sm text-zinc-400 mt-1">Email: {email}</p>
+                </div>
+              )}
+
+              <button onClick={() => toggleTab('wallet')} className="w-full flex items-center justify-between p-4 hover:bg-[#27272A] transition-colors border-b border-[#27272A]">
                 <div className="flex items-center gap-3">
                   <Wallet className="h-5 w-5 text-zinc-400" />
                   <span className="text-sm font-medium">Manajemen Dompet</span>
                 </div>
+                {openTab === 'wallet' ? <ChevronUp className="h-4 w-4 text-zinc-500" /> : <ChevronDown className="h-4 w-4 text-zinc-500" />}
               </button>
+              {openTab === 'wallet' && (
+                <div className="p-4 bg-[#09090B] border-b border-[#27272A] space-y-3">
+                  <h4 className="text-xs font-bold text-zinc-500 uppercase tracking-wider">Daftar Dompet</h4>
+                  {wallets && wallets.length > 0 ? (
+                    wallets.map(w => (
+                      <div key={w.id} className="flex justify-between items-center p-3 bg-[#18181B] rounded-lg border border-[#27272A]">
+                        <span className="text-sm font-medium">{w.name}</span>
+                        <span className="text-sm text-emerald-400 font-bold">Rp {Number(w.balance).toLocaleString('id-ID')}</span>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-sm text-zinc-500">Belum ada dompet.</div>
+                  )}
+                  <button className="text-xs text-indigo-400 hover:text-indigo-300 font-medium mt-2">+ Tambah Dompet Baru</button>
+                </div>
+              )}
+
               <button className="w-full flex items-center justify-between p-4 hover:bg-[#27272A] transition-colors border-b border-[#27272A]">
                 <div className="flex items-center gap-3">
                   <Bell className="h-5 w-5 text-zinc-400" />
