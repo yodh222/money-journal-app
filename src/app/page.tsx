@@ -5,6 +5,7 @@ import { Wallet, ArrowUpRight, ArrowDownRight, Plus, BookOpen, Loader2 } from 'l
 import CashFlowChart from '@/components/dashboard/CashFlowChart';
 import DragDropArea from '@/components/dashboard/DragDropArea';
 import TransactionModal from '@/components/dashboard/TransactionModal';
+import AIInsights from '@/components/dashboard/AIInsights';
 import { useSupabaseData } from '@/hooks/useSupabaseData';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
@@ -114,6 +115,8 @@ export default function Dashboard() {
           </div>
           <TransactionModal />
         </div>
+
+        <AIInsights />
 
         {/* BARIS KARTU SALDO & RINGKASAN */}
         <div className="grid grid-cols-3 gap-6">

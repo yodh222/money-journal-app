@@ -1,15 +1,65 @@
 'use client';
 
-import React, { useState, useCallback } from 'react';
-import { UploadCloud } from 'lucide-react';
+import React, { useState, useCallback, useRef } from 'react';
+import { UploadCloud, Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
+import { transactionService } from '@/services/transaction.service';
+import { walletService } from '@/services/wallet.service';
+import { categoryService } from '@/services/category.service';
 
 export default function DragDropArea() {
   const [isDragging, setIsDragging] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const processFile = async (file: File) => {
+    setIsUploading(true);
+    const toastId = toast.loading('Memproses struk dengan AI...');
+    
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const res = await fetch('/api/ocr', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!res.ok) throw new Error('Gagal menganalisis struk');
+      const data = await res.json();
+
+      // Find references
+      const walletId = await walletService.getFirstWalletId();
+      if (!walletId) throw new Error('Belum ada dompet aktif.');
+
+      let categoryId = null;
+      if (data.categoryHint) {
+        categoryId = await categoryService.findCategoryByName(data.categoryHint);
+        if (!categoryId) categoryId = await categoryService.getAnyCategory();
+      }
+
+      await transactionService.createTransaction({
+        wallet_id: walletId,
+        category_id: categoryId,
+        amount: data.type === 'EXPENSE' ? -data.amount : data.amount,
+        notes: data.notes
+      });
+
+      toast.success(`Berhasil mencatat Rp${data.amount.toLocaleString('id-ID')} dari struk!`, { id: toastId });
+      window.location.reload();
+      
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err.message || 'Terjadi kesalahan saat upload', { id: toastId });
+    } finally {
+      setIsUploading(false);
+    }
+  };
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
-    setIsDragging(true);
-  }, []);
+    if (!isUploading) setIsDragging(true);
+  }, [isUploading]);
 
   const handleDragLeave = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -20,27 +70,45 @@ export default function DragDropArea() {
     e.preventDefault();
     setIsDragging(false);
     
+    if (isUploading) return;
+
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-      const file = e.dataTransfer.files[0];
-      console.log('File dropped:', file.name);
-      // TODO: Implement local OCR or API logic here
+      processFile(e.dataTransfer.files[0]);
     }
-  }, []);
+  }, [isUploading]);
 
   return (
     <div 
-      className={`border-2 border-dashed rounded-xl p-4 text-center transition-all flex flex-col items-center justify-center ${
+      className={`relative border-2 border-dashed rounded-xl p-4 text-center transition-all flex flex-col items-center justify-center cursor-pointer overflow-hidden ${
         isDragging 
           ? 'border-indigo-500 bg-indigo-500/10' 
           : 'border-[#27272A] bg-[#18181B] hover:border-zinc-600'
-      }`}
+      } ${isUploading ? 'opacity-75 pointer-events-none' : ''}`}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
+      onClick={() => fileInputRef.current?.click()}
     >
-      <UploadCloud className={`h-8 w-8 mb-2 ${isDragging ? 'text-indigo-400' : 'text-zinc-500'}`} />
+      <input 
+        type="file" 
+        className="hidden" 
+        ref={fileInputRef}
+        accept="image/*,.pdf"
+        onChange={(e) => {
+          if (e.target.files && e.target.files.length > 0) {
+            processFile(e.target.files[0]);
+          }
+        }}
+      />
+      {isUploading ? (
+        <Loader2 className="h-8 w-8 mb-2 text-indigo-500 animate-spin" />
+      ) : (
+        <UploadCloud className={`h-8 w-8 mb-2 ${isDragging ? 'text-indigo-400' : 'text-zinc-500'}`} />
+      )}
       <p className="text-xs font-medium text-zinc-400">
-        Drop struk/bukti transfer ke sini <br/> untuk diproses otomatis.
+        {isUploading ? 'Menganalisis...' : (
+          <>Drop struk/bukti transfer ke sini <br/> atau klik untuk upload.</>
+        )}
       </p>
     </div>
   );
