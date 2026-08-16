@@ -4,13 +4,14 @@ import React, { useState, useCallback, useRef } from 'react';
 import { UploadCloud, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { transactionService } from '@/services/transaction.service';
-import { walletService } from '@/services/wallet.service';
-import { categoryService } from '@/services/category.service';
+import { useSupabaseData } from '@/hooks/useSupabaseData';
 
 export default function DragDropArea() {
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const { wallets, categories } = useSupabaseData();
 
   const processFile = async (file: File) => {
     setIsUploading(true);
@@ -28,14 +29,16 @@ export default function DragDropArea() {
       if (!res.ok) throw new Error('Gagal menganalisis struk');
       const data = await res.json();
 
-      // Find references
-      const walletId = await walletService.getFirstWalletId();
-      if (!walletId) throw new Error('Belum ada dompet aktif.');
+      // Find references from local state
+      const firstWallet = wallets[0];
+      if (!firstWallet) throw new Error('Belum ada dompet aktif.');
+      const walletId = firstWallet.id;
 
       let categoryId = null;
       if (data.categoryHint) {
-        categoryId = await categoryService.findCategoryByName(data.categoryHint);
-        if (!categoryId) categoryId = await categoryService.getAnyCategory();
+        const found = categories.find((c: any) => c.name.toLowerCase() === data.categoryHint.toLowerCase());
+        if (found) categoryId = found.id;
+        else if (categories.length > 0) categoryId = categories[0].id;
       }
 
       await transactionService.createTransaction({

@@ -5,8 +5,7 @@ import { useShortcut } from '@/hooks/useShortcut';
 import { Search, PlusCircle, ArrowRightLeft, Settings } from 'lucide-react';
 import { parseQuickInput } from '@/lib/parser';
 import { transactionService } from '@/services/transaction.service';
-import { walletService } from '@/services/wallet.service';
-import { categoryService } from '@/services/category.service';
+import { useSupabaseData } from '@/hooks/useSupabaseData';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 
@@ -51,26 +50,28 @@ export default function CommandPalette() {
 
   if (!isOpen) return null;
 
+  const { wallets, categories } = useSupabaseData();
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!parseResult || !parseResult.amount) return;
     
     try {
       // Fetch first wallet
-      const walletId = await walletService.getFirstWalletId();
+      const firstWallet = wallets[0];
 
-      if (!walletId) {
+      if (!firstWallet) {
         toast.error('Gagal: Anda belum memiliki dompet/wallet.');
         return;
       }
+      const walletId = firstWallet.id;
 
       // Find or create category
       let categoryId = null;
       if (parseResult.categoryHint) {
-        categoryId = await categoryService.findCategoryByName(parseResult.categoryHint);
-        if (!categoryId) {
-          categoryId = await categoryService.getAnyCategory();
-        }
+        const found = categories.find((c: any) => c.name.toLowerCase() === parseResult.categoryHint.toLowerCase());
+        if (found) categoryId = found.id;
+        else if (categories.length > 0) categoryId = categories[0].id;
       }
 
       // Insert transaction
