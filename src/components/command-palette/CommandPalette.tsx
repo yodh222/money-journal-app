@@ -4,7 +4,9 @@ import React, { useState, useEffect } from 'react';
 import { useShortcut } from '@/hooks/useShortcut';
 import { Search, PlusCircle, ArrowRightLeft, Settings } from 'lucide-react';
 import { parseQuickInput } from '@/lib/parser';
-import { supabase } from '@/lib/supabaseClient';
+import { transactionService } from '@/services/transaction.service';
+import { walletService } from '@/services/wallet.service';
+import { categoryService } from '@/services/category.service';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 
@@ -54,15 +56,8 @@ export default function CommandPalette() {
     if (!parseResult || !parseResult.amount) return;
     
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        toast.error('Anda belum login!');
-        return;
-      }
-
       // Fetch first wallet
-      const { data: wallets } = await supabase.from('wallets').select('id').eq('user_id', session.user.id).limit(1);
-      const walletId = wallets?.[0]?.id;
+      const walletId = await walletService.getFirstWalletId();
 
       if (!walletId) {
         toast.error('Gagal: Anda belum memiliki dompet/wallet.');
@@ -72,27 +67,20 @@ export default function CommandPalette() {
       // Find or create category
       let categoryId = null;
       if (parseResult.categoryHint) {
-        const { data: cats } = await supabase.from('categories').select('id').eq('name', parseResult.categoryHint).limit(1);
-        if (cats && cats.length > 0) {
-          categoryId = cats[0].id;
-        } else {
-          // Provide a fallback category if not found (in a real app, you'd create it)
-          const { data: anyCat } = await supabase.from('categories').select('id').limit(1);
-          categoryId = anyCat?.[0]?.id;
+        categoryId = await categoryService.findCategoryByName(parseResult.categoryHint);
+        if (!categoryId) {
+          categoryId = await categoryService.getAnyCategory();
         }
       }
 
       // Insert transaction
-      const { error } = await supabase.from('transactions').insert({
-        user_id: session.user.id,
+      await transactionService.createTransaction({
         wallet_id: walletId,
-        category_id: categoryId, // This might be null if there are no categories
+        category_id: categoryId,
         amount: parseResult.amount,
         notes: parseResult.notes,
         tags: parseResult.tags,
       });
-
-      if (error) throw error;
       
       toast.success(`Tersimpan!\nNominal: Rp ${parseResult.amount}\nKategori: ${parseResult.categoryHint || 'Lainnya'}`);
       window.location.reload();

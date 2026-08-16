@@ -10,6 +10,8 @@ import { Loader2 } from 'lucide-react';
 import { supabase } from '@/lib/supabaseClient';
 import { toast } from 'sonner';
 
+import { categoryService } from '@/services/category.service';
+
 export default function CategoryModal() {
   const [isOpen, setIsOpen] = useState(false);
   const [name, setName] = useState('');
@@ -21,17 +23,11 @@ export default function CategoryModal() {
     e.preventDefault();
     setLoading(true);
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) throw new Error('Anda belum login');
-
-      const { error } = await supabase.from('categories').insert({
-        user_id: session.user.id,
+      await categoryService.createCategory({
         name: name,
         type: type,
         budget_limit: parseFloat(budgetLimit) || 0,
       });
-
-      if (error) throw error;
       
       toast.success('Kategori berhasil ditambahkan!');
       setIsOpen(false);

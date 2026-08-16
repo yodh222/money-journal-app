@@ -9,6 +9,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Plus, Loader2 } from 'lucide-react';
 import { supabase } from '@/lib/supabaseClient';
 import { toast } from 'sonner';
+import { transactionService } from '@/services/transaction.service';
+import { walletService } from '@/services/wallet.service';
 
 export default function TransactionModal() {
   const [isOpen, setIsOpen] = useState(false);
@@ -54,15 +56,12 @@ export default function TransactionModal() {
       if (!walletId) throw new Error('No wallet found');
       if (!categoryId) throw new Error('No category selected');
 
-      const { error } = await supabase.from('transactions').insert({
-        user_id: session.user.id,
+      await transactionService.createTransaction({
         wallet_id: walletId,
         category_id: categoryId,
-        amount: parseFloat(amount),
+        amount: type === 'EXPENSE' ? -parseFloat(amount) : parseFloat(amount),
         notes: notes,
       });
-
-      if (error) throw error;
       
       toast.success('Transaksi berhasil ditambahkan!');
       setIsOpen(false);

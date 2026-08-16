@@ -11,6 +11,8 @@ import { supabase } from '@/lib/supabaseClient';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 
+import { walletService } from '@/services/wallet.service';
+
 export default function WalletModal() {
   const [isOpen, setIsOpen] = useState(false);
   const [name, setName] = useState('');
@@ -23,17 +25,11 @@ export default function WalletModal() {
     e.preventDefault();
     setLoading(true);
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) throw new Error('Anda belum login');
-
-      const { error } = await supabase.from('wallets').insert({
-        user_id: session.user.id,
+      await walletService.createWallet({
         name: name,
         type: type,
         balance: parseFloat(balance) || 0,
       });
-
-      if (error) throw error;
       
       toast.success('Dompet berhasil ditambahkan!');
       setIsOpen(false);
