@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useSupabaseData } from '@/hooks/useSupabaseData';
 import { supabase } from '@/lib/supabaseClient';
 import { useRouter } from 'next/navigation';
+import WalletModal from '@/components/settings/WalletModal';
 
 export default function SettingsPage() {
   const { session, loading, wallets } = useSupabaseData();
@@ -107,22 +108,35 @@ export default function SettingsPage() {
                   ) : (
                     <div className="text-sm text-zinc-500">Belum ada dompet.</div>
                   )}
-                  <button className="text-xs text-indigo-400 hover:text-indigo-300 font-medium mt-2">+ Tambah Dompet Baru</button>
+                  <WalletModal />
                 </div>
               )}
 
-              <button className="w-full flex items-center justify-between p-4 hover:bg-[#27272A] transition-colors border-b border-[#27272A]">
+              <button onClick={() => toggleTab('notif')} className="w-full flex items-center justify-between p-4 hover:bg-[#27272A] transition-colors border-b border-[#27272A]">
                 <div className="flex items-center gap-3">
                   <Bell className="h-5 w-5 text-zinc-400" />
                   <span className="text-sm font-medium">Notifikasi</span>
                 </div>
+                {openTab === 'notif' ? <ChevronUp className="h-4 w-4 text-zinc-500" /> : <ChevronDown className="h-4 w-4 text-zinc-500" />}
               </button>
-              <button className="w-full flex items-center justify-between p-4 hover:bg-[#27272A] transition-colors">
+              {openTab === 'notif' && (
+                <div className="p-4 bg-[#09090B] border-b border-[#27272A]">
+                  <p className="text-sm text-zinc-500 italic">Fitur ini sedang dalam tahap pengembangan.</p>
+                </div>
+              )}
+
+              <button onClick={() => toggleTab('security')} className="w-full flex items-center justify-between p-4 hover:bg-[#27272A] transition-colors">
                 <div className="flex items-center gap-3">
                   <Shield className="h-5 w-5 text-zinc-400" />
                   <span className="text-sm font-medium">Keamanan & Privasi</span>
                 </div>
+                {openTab === 'security' ? <ChevronUp className="h-4 w-4 text-zinc-500" /> : <ChevronDown className="h-4 w-4 text-zinc-500" />}
               </button>
+              {openTab === 'security' && (
+                <div className="p-4 bg-[#09090B] border-t border-[#27272A]">
+                  <p className="text-sm text-zinc-500 italic">Fitur ini sedang dalam tahap pengembangan.</p>
+                </div>
+              )}
             </div>
           </div>
           
