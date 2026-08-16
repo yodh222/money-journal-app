@@ -82,13 +82,13 @@ export default function CommandPalette() {
         wallet_id: walletId,
         category_id: categoryId, // This might be null if there are no categories
         amount: parseResult.amount,
-        notes: parseResult.notes,
-        tags: parseResult.tags,
+        notes: parseResult.notes ? `${parseResult.notes} ${parseResult.tags.join(' ')}` : parseResult.tags.join(' '),
       });
 
       if (error) throw error;
       
       alert(`Tersimpan!\nNominal: Rp ${parseResult.amount}\nKategori: ${parseResult.categoryHint || 'Lainnya'}`);
+      window.location.reload();
       
     } catch (err: any) {
       console.error(err);
