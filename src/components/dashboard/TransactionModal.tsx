@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, Loader2 } from 'lucide-react';
 import { supabase } from '@/lib/supabaseClient';
+import { toast } from 'sonner';
 
 export default function TransactionModal() {
   const [isOpen, setIsOpen] = useState(false);
@@ -63,12 +64,13 @@ export default function TransactionModal() {
 
       if (error) throw error;
       
-      alert('Transaksi berhasil ditambahkan!');
+      toast.success('Transaksi berhasil ditambahkan!');
       setIsOpen(false);
       setAmount('');
       setNotes('');
+      window.location.reload();
     } catch (err: any) {
-      alert(err.message);
+      toast.error(err.message);
     } finally {
       setLoading(false);
     }

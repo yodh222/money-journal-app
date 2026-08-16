@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger } from '@/components/ui/select';
 import { Loader2 } from 'lucide-react';
 import { supabase } from '@/lib/supabaseClient';
+import { toast } from 'sonner';
 
 export default function CategoryModal() {
   const [isOpen, setIsOpen] = useState(false);
@@ -32,14 +33,14 @@ export default function CategoryModal() {
 
       if (error) throw error;
       
-      alert('Kategori berhasil ditambahkan!');
+      toast.success('Kategori berhasil ditambahkan!');
       setIsOpen(false);
       setName('');
       setBudgetLimit('');
       setType('EXPENSE');
       window.location.reload(); 
     } catch (err: any) {
-      alert(err.message);
+      toast.error(err.message);
     } finally {
       setLoading(false);
     }

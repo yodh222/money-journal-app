@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Loader2 } from 'lucide-react';
 import { supabase } from '@/lib/supabaseClient';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 
 export default function WalletModal() {
   const [isOpen, setIsOpen] = useState(false);
@@ -34,14 +35,14 @@ export default function WalletModal() {
 
       if (error) throw error;
       
-      alert('Dompet berhasil ditambahkan!');
+      toast.success('Dompet berhasil ditambahkan!');
       setIsOpen(false);
       setName('');
       setBalance('');
       setType('CASH');
       window.location.reload(); // Refresh the page to show the new wallet
     } catch (err: any) {
-      alert(err.message);
+      toast.error(err.message);
     } finally {
       setLoading(false);
     }

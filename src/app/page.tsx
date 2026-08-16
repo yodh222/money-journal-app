@@ -7,6 +7,7 @@ import DragDropArea from '@/components/dashboard/DragDropArea';
 import TransactionModal from '@/components/dashboard/TransactionModal';
 import { useSupabaseData } from '@/hooks/useSupabaseData';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 
 export default function Dashboard() {
   const router = useRouter();
@@ -20,7 +21,7 @@ export default function Dashboard() {
 
   const handleSaveJournal = () => {
     localStorage.setItem('daily_journal', journalNote);
-    alert('Catatan berhasil disimpan (lokal).');
+    toast.success('Catatan berhasil disimpan (lokal).');
   };
 
   const chartData = useMemo(() => {

@@ -3,8 +3,11 @@
 import React, { useState } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { BookOpen } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 
 export default function LoginPage() {
+  const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [isRegistering, setIsRegistering] = useState(false);
   const [email, setEmail] = useState('');
@@ -31,11 +34,13 @@ export default function LoginPage() {
           }
         });
         
-        if (error) throw error;
-        
-        alert('Registrasi berhasil! Silakan cek kotak masuk email Anda dan klik link verifikasi sebelum mencoba login.');
-        setIsRegistering(false); // Balik ke mode login
-        setPassword('');
+        if (error) {
+          toast.error('Gagal Registrasi: ' + error.message);
+        } else {
+          toast.success('Registrasi berhasil! Silakan cek kotak masuk email Anda dan klik link verifikasi sebelum mencoba login.');
+          setIsRegistering(false);
+          setPassword('');
+        }
         
       } else {
         // Alur Masuk (Login)
@@ -46,12 +51,13 @@ export default function LoginPage() {
         
         if (error) throw error;
         
-        // Login berhasil, router di page.tsx atau middleware akan mengarahkan ke dashboard
-        window.location.href = '/';
+        // Login berhasil
+        router.push('/');
+        router.refresh();
       }
     } catch (error: any) {
       console.error('Auth error:', error);
-      alert('Gagal: ' + error.message);
+      toast.error('Gagal: ' + error.message);
     } finally {
       setIsLoading(false);
     }

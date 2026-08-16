@@ -6,6 +6,7 @@ import { Search, PlusCircle, ArrowRightLeft, Settings } from 'lucide-react';
 import { parseQuickInput } from '@/lib/parser';
 import { supabase } from '@/lib/supabaseClient';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 
 export default function CommandPalette() {
   const router = useRouter();
@@ -55,7 +56,7 @@ export default function CommandPalette() {
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
-        alert('Anda belum login!');
+        toast.error('Anda belum login!');
         return;
       }
 
@@ -64,7 +65,7 @@ export default function CommandPalette() {
       const walletId = wallets?.[0]?.id;
 
       if (!walletId) {
-        alert('Gagal: Anda belum memiliki dompet/wallet.');
+        toast.error('Gagal: Anda belum memiliki dompet/wallet.');
         return;
       }
 
@@ -93,12 +94,12 @@ export default function CommandPalette() {
 
       if (error) throw error;
       
-      alert(`Tersimpan!\nNominal: Rp ${parseResult.amount}\nKategori: ${parseResult.categoryHint || 'Lainnya'}`);
+      toast.success(`Tersimpan!\nNominal: Rp ${parseResult.amount}\nKategori: ${parseResult.categoryHint || 'Lainnya'}`);
       window.location.reload();
       
     } catch (err: any) {
       console.error(err);
-      alert('Gagal menyimpan transaksi: ' + err.message);
+      toast.error('Gagal menyimpan transaksi: ' + err.message);
     }
     
     setIsOpen(false);

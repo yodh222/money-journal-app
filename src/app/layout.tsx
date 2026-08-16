@@ -3,6 +3,7 @@ import { Inter, Geist } from 'next/font/google';
 import './globals.css';
 import CommandPalette from '@/components/command-palette/CommandPalette';
 import { cn } from "@/lib/utils";
+import { Toaster } from "sonner";
 
 const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
@@ -26,6 +27,7 @@ export default function RootLayout({
       <body className={`${inter.variable} antialiased relative`}>
         {children}
         <CommandPalette />
+        <Toaster theme="dark" position="bottom-right" />
       </body>
     </html>
   );
