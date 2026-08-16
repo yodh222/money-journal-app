@@ -145,11 +145,33 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* MOCKUP AREA GRAFIK UTAMA */}
+        {/* AREA GRAFIK UTAMA */}
         <div className="bg-[#18181B] border border-[#27272A] p-6 rounded-xl h-[340px] hover:border-zinc-700 transition-colors relative">
           <h3 className="text-sm font-semibold tracking-wide text-zinc-300 mb-4 absolute z-10">Arus Kas Bulanan</h3>
           <div className="pt-6 h-full w-full">
             <CashFlowChart data={chartData} />
+          </div>
+        </div>
+
+        {/* TRANSAKSI TERAKHIR */}
+        <div className="mt-8">
+          <h2 className="text-lg font-bold tracking-tight mb-4">Transaksi Terakhir</h2>
+          <div className="bg-[#18181B] border border-[#27272A] rounded-xl overflow-hidden">
+            {transactions && transactions.length > 0 ? (
+              transactions.slice(0, 5).map((tx: any) => (
+                <div key={tx.id} className="p-4 border-b border-[#27272A] last:border-b-0 flex justify-between items-center hover:bg-[#27272A]/50 transition-colors">
+                  <div>
+                    <p className="font-medium text-zinc-200">{tx.notes || tx.categories?.name || 'Transaksi'}</p>
+                    <p className="text-xs text-zinc-500">{new Date(tx.transaction_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })} • {tx.categories?.name || 'Lainnya'}</p>
+                  </div>
+                  <div className={`font-bold ${tx.categories?.type === 'INCOME' ? 'text-emerald-400' : 'text-zinc-200'}`}>
+                    {tx.categories?.type === 'INCOME' ? '+' : '-'} {formatIDR(Number(tx.amount))}
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="p-8 text-center text-zinc-500 text-sm">Belum ada transaksi bulan ini.</div>
+            )}
           </div>
         </div>
       </main>

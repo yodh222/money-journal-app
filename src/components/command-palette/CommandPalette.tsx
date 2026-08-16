@@ -5,8 +5,10 @@ import { useShortcut } from '@/hooks/useShortcut';
 import { Search, PlusCircle, ArrowRightLeft, Settings } from 'lucide-react';
 import { parseQuickInput } from '@/lib/parser';
 import { supabase } from '@/lib/supabaseClient';
+import { useRouter } from 'next/navigation';
 
 export default function CommandPalette() {
+  const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [inputValue, setInputValue] = useState('');
   const [parseResult, setParseResult] = useState<any>(null);
@@ -22,7 +24,10 @@ export default function CommandPalette() {
       setIsOpen(false);
       setInputValue('');
       setParseResult(null);
-    }
+    },
+    D: () => router.push('/'),
+    A: () => router.push('/analytics'),
+    S: () => router.push('/settings')
   });
 
   useEffect(() => {
@@ -82,7 +87,8 @@ export default function CommandPalette() {
         wallet_id: walletId,
         category_id: categoryId, // This might be null if there are no categories
         amount: parseResult.amount,
-        notes: parseResult.notes ? `${parseResult.notes} ${parseResult.tags.join(' ')}` : parseResult.tags.join(' '),
+        notes: parseResult.notes,
+        tags: parseResult.tags,
       });
 
       if (error) throw error;
