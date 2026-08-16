@@ -61,13 +61,13 @@ export function useSupabaseData() {
   return {
     session,
     loading: sessionLoading || isLoading,
-    wallets: data?.wallets || [],
-    categories: data?.categories || [],
-    budgets: data?.budgets || [],
-    transactions: data?.transactions || [],
-    totalBalance: data?.totalBalance || 0,
-    incomeThisMonth: data?.incomeThisMonth || 0,
-    expenseThisMonth: data?.expenseThisMonth || 0,
+    wallets: (data?.wallets || []) as any[],
+    categories: (data?.categories || []) as any[],
+    budgets: (data?.budgets || []) as any[],
+    transactions: (data?.transactions || []) as any[],
+    totalBalance: (data?.totalBalance || 0) as number,
+    incomeThisMonth: (data?.incomeThisMonth || 0) as number,
+    expenseThisMonth: (data?.expenseThisMonth || 0) as number,
     refetch: mutate
   };
 }
