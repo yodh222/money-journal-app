@@ -26,7 +26,7 @@ export default function OnboardingEmptyState() {
             <p className="text-xs text-zinc-400 leading-relaxed">
               Tambahkan tempat Anda menyimpan uang, seperti Dompet Tunai, Rekening BCA, e-Wallet, dll.
             </p>
-            <Link href="/settings" className="inline-flex items-center gap-1.5 text-xs font-medium text-indigo-400 hover:text-indigo-300 transition-colors mt-2">
+            <Link href="/settings?tab=wallet" className="inline-flex items-center gap-1.5 text-xs font-medium text-indigo-400 hover:text-indigo-300 transition-colors mt-2">
               Atur Dompet Sekarang <ArrowRight className="h-3 w-3" />
             </Link>
           </div>
@@ -42,7 +42,7 @@ export default function OnboardingEmptyState() {
             <p className="text-xs text-zinc-400 leading-relaxed">
               Beri nama untuk pengeluaran dan pemasukan Anda (misal: Makanan, Gaji, Transportasi) agar AI bisa memberikan analisis yang akurat.
             </p>
-            <Link href="/settings" className="inline-flex items-center gap-1.5 text-xs font-medium text-emerald-400 hover:text-emerald-300 transition-colors mt-2">
+            <Link href="/settings?tab=category" className="inline-flex items-center gap-1.5 text-xs font-medium text-emerald-400 hover:text-emerald-300 transition-colors mt-2">
               Atur Kategori Sekarang <ArrowRight className="h-3 w-3" />
             </Link>
           </div>

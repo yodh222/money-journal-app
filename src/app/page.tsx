@@ -144,19 +144,50 @@ export default function Dashboard() {
           <h2 className="text-lg font-bold tracking-tight mb-4">Transaksi Terakhir</h2>
           <div className="bg-[#18181B] border border-[#27272A] rounded-xl overflow-hidden">
             {transactions && transactions.length > 0 ? (
-              transactions.slice(0, 5).map((tx: any) => (
-                <div key={tx.id} className="p-4 border-b border-[#27272A] last:border-b-0 flex justify-between items-center hover:bg-[#27272A]/50 transition-colors">
-                  <div>
-                    <p className="font-medium text-zinc-200">{tx.notes || tx.categories?.name || 'Transaksi'}</p>
-                    <p className="text-xs text-zinc-500">{new Date(tx.transaction_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })} • {tx.categories?.name || 'Lainnya'}</p>
-                  </div>
-                  <div className={`font-bold ${tx.categories?.type === 'INCOME' ? 'text-emerald-400' : 'text-zinc-200'}`}>
-                    {tx.categories?.type === 'INCOME' ? '+' : '-'} {formatIDR(Number(tx.amount))}
-                  </div>
-                </div>
-              ))
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm text-left">
+                  <thead className="bg-[#27272A]/50 text-zinc-400 text-xs uppercase tracking-wider">
+                    <tr>
+                      <th className="px-6 py-4 font-medium">Tanggal</th>
+                      <th className="px-6 py-4 font-medium">Kategori</th>
+                      <th className="px-6 py-4 font-medium">Catatan Transaksi</th>
+                      <th className="px-6 py-4 font-medium text-right">Nominal</th>
+                      <th className="px-6 py-4 font-medium text-center">Struk</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[#27272A]">
+                    {transactions.slice(0, 10).map((tx: any) => (
+                      <tr key={tx.id} className="hover:bg-[#27272A]/30 transition-colors group">
+                        <td className="px-6 py-4 whitespace-nowrap text-zinc-300">
+                          {new Date(tx.transaction_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#27272A] text-zinc-300">
+                            {tx.categories?.name || 'Lainnya'}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 text-zinc-300 max-w-xs truncate">
+                          {tx.notes || '-'}
+                        </td>
+                        <td className={`px-6 py-4 whitespace-nowrap text-right font-bold ${tx.categories?.type === 'INCOME' ? 'text-emerald-400' : 'text-zinc-200'}`}>
+                          {tx.categories?.type === 'INCOME' ? '+' : '-'} {formatIDR(Number(tx.amount))}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-center">
+                          {tx.metadata?.receipt_url ? (
+                            <a href={tx.metadata.receipt_url} target="_blank" rel="noreferrer" className="text-indigo-400 hover:text-indigo-300 inline-flex items-center gap-1 text-xs font-medium">
+                              <ArrowUpRight className="h-3 w-3" /> Lihat
+                            </a>
+                          ) : (
+                            <span className="text-zinc-600 text-xs">-</span>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             ) : (
-              <div className="p-8 text-center text-zinc-500 text-sm">Belum ada transaksi bulan ini.</div>
+              <div className="p-8 text-center text-zinc-500 text-sm">Belum ada transaksi.</div>
             )}
           </div>
         </div>

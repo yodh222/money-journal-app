@@ -19,6 +19,7 @@ export default function TransactionModal() {
   const [type, setType] = useState('EXPENSE');
   const [categories, setCategories] = useState<any[]>([]);
   const [categoryId, setCategoryId] = useState('');
+  const [receiptUrl, setReceiptUrl] = useState('');
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -61,6 +62,7 @@ export default function TransactionModal() {
         category_id: categoryId,
         amount: type === 'EXPENSE' ? -parseFloat(amount) : parseFloat(amount),
         notes: notes,
+        metadata: receiptUrl ? { receipt_url: receiptUrl } : undefined
       });
       
       toast.success('Transaksi berhasil ditambahkan!');
@@ -91,7 +93,9 @@ export default function TransactionModal() {
             <Label>Tipe Transaksi</Label>
             <Select value={type} onValueChange={(val) => setType(val || 'EXPENSE')}>
               <SelectTrigger className="bg-[#27272A] border-[#27272A]">
-                <SelectValue placeholder="Pilih tipe" />
+                <SelectValue placeholder="Pilih tipe">
+                  {type === 'EXPENSE' ? 'Pengeluaran' : type === 'INCOME' ? 'Pemasukan' : ''}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent className="bg-[#18181B] border-[#27272A] text-white">
                 <SelectItem value="EXPENSE">Pengeluaran</SelectItem>
@@ -104,7 +108,9 @@ export default function TransactionModal() {
             <Label>Kategori</Label>
             <Select value={categoryId} onValueChange={(val) => setCategoryId(val || '')} disabled={categories.length === 0}>
               <SelectTrigger className="bg-[#27272A] border-[#27272A]">
-                <SelectValue placeholder="Pilih kategori" />
+                <SelectValue placeholder="Pilih kategori">
+                  {categories.find(c => c.id === categoryId)?.name || 'Pilih kategori'}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent className="bg-[#18181B] border-[#27272A] text-white">
                 {categories.map((c) => (
@@ -128,12 +134,23 @@ export default function TransactionModal() {
           </div>
 
           <div className="space-y-2">
-            <Label>Catatan</Label>
+            <Label>Catatan Transaksi</Label>
             <Input 
               value={notes} 
               onChange={e => setNotes(e.target.value)} 
-              className="bg-[#27272A] border-[#27272A]"
-              placeholder="Makan siang..."
+              className="bg-[#27272A] border-[#27272A] text-white"
+              placeholder="Contoh: Makan siang dengan klien"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label>Link Photo Struk / Sejenisnya (Opsional)</Label>
+            <Input 
+              type="url"
+              value={receiptUrl} 
+              onChange={e => setReceiptUrl(e.target.value)} 
+              className="bg-[#27272A] border-[#27272A] text-white"
+              placeholder="Contoh: https://link-foto.com/struk.jpg"
             />
           </div>
 

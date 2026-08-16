@@ -17,7 +17,7 @@ export async function GET(request: Request) {
       supabase.from('wallets').select('*').eq('ledger_id', ledgerId),
       supabase.from('categories').select('*').eq('ledger_id', ledgerId),
       supabase.from('budgets').select('*, categories(name)').eq('ledger_id', ledgerId),
-      supabase.from('transactions').select('*, categories(name, type), wallets(name)').eq('ledger_id', ledgerId).order('transaction_date', { ascending: false })
+      supabase.from('transactions').select('*, categories(name, type), wallets!wallet_id(name)').eq('ledger_id', ledgerId).order('transaction_date', { ascending: false })
     ]);
 
     if (walletsRes.error) throw walletsRes.error;

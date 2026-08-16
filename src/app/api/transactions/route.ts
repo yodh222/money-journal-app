@@ -13,10 +13,17 @@ export async function POST(request: Request) {
     const ledgerId = await getServerLedgerId(supabase, user.id);
     const body = await request.json();
 
-    const { tags, ...transactionData } = body;
+    const { tags, type, ...transactionData } = body;
+    
+    // Auto-infer type if not provided
+    let txType = type;
+    if (!txType) {
+      txType = transactionData.amount < 0 ? 'EXPENSE' : 'INCOME';
+    }
 
     const { data: tx, error: txError } = await supabase.from('transactions').insert({
       ledger_id: ledgerId,
+      type: txType,
       ...transactionData,
     }).select().single();
 

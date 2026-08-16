@@ -1,87 +1,73 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import useSWR from 'swr';
 import { supabase } from '@/lib/supabaseClient';
 import { apiClient } from '@/lib/apiClient';
 
+const fetcher = async () => {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) throw new Error('No session');
+  
+  const data = await apiClient.get('/api/dashboard');
+  
+  const totalBalance = data.wallets.reduce((sum: number, w: any) => sum + Number(w.balance), 0);
+  
+  const currentMonth = new Date().getMonth();
+  const currentYear = new Date().getFullYear();
+  let incomeThisMonth = 0;
+  let expenseThisMonth = 0;
+
+  data.transactions.forEach((tx: any) => {
+    const d = new Date(tx.transaction_date);
+    if (d.getMonth() === currentMonth && d.getFullYear() === currentYear) {
+      if (tx.categories?.type === 'INCOME') incomeThisMonth += Number(tx.amount);
+      else if (tx.categories?.type === 'EXPENSE') expenseThisMonth += Number(tx.amount);
+    }
+  });
+
+  return {
+    ...data,
+    totalBalance,
+    incomeThisMonth,
+    expenseThisMonth
+  };
+};
+
 export function useSupabaseData() {
   const [session, setSession] = useState<any>(null);
-  const [transactions, setTransactions] = useState<any[]>([]);
-  const [wallets, setWallets] = useState<any[]>([]);
-  const [categories, setCategories] = useState<any[]>([]);
-  const [budgets, setBudgets] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  // Stats
-  const [totalBalance, setTotalBalance] = useState(0);
-  const [incomeThisMonth, setIncomeThisMonth] = useState(0);
-  const [expenseThisMonth, setExpenseThisMonth] = useState(0);
+  const [sessionLoading, setSessionLoading] = useState(true);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
-      if (!session) setLoading(false);
+      setSessionLoading(false);
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
+      setSessionLoading(false);
     });
 
     return () => subscription.unsubscribe();
   }, []);
 
-  const fetchData = async () => {
-    setLoading(true);
-    try {
-      if (!session) return;
-      const data = await apiClient.get('/api/dashboard');
-      
-      setWallets(data.wallets);
-      setCategories(data.categories);
-      setBudgets(data.budgets);
-      setTransactions(data.transactions);
-      
-      const total = data.wallets.reduce((sum: number, w: any) => sum + Number(w.balance), 0);
-      setTotalBalance(total);
-
-      const currentMonth = new Date().getMonth();
-      const currentYear = new Date().getFullYear();
-      let income = 0;
-      let expense = 0;
-
-      data.transactions.forEach((tx: any) => {
-        const d = new Date(tx.transaction_date);
-        if (d.getMonth() === currentMonth && d.getFullYear() === currentYear) {
-          if (tx.categories?.type === 'INCOME') income += Number(tx.amount);
-          else if (tx.categories?.type === 'EXPENSE') expense += Number(tx.amount);
-        }
-      });
-
-      setIncomeThisMonth(income);
-      setExpenseThisMonth(expense);
-    } catch (error) {
-      console.error('API Error in useSupabaseData:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    if (session) {
-      fetchData();
-    }
-  }, [session]);
+  const { data, error, isLoading, mutate } = useSWR(session ? '/api/dashboard' : null, fetcher, {
+    revalidateOnFocus: false, // Prevents reloading when switching tabs/apps
+    revalidateIfStale: false, // Prevents reloading on page mount if data is cached
+    dedupingInterval: 60000,  // Cache deduplication for 1 minute
+  });
 
   return {
     session,
-    loading,
-    wallets,
-    categories,
-    budgets,
-    transactions,
-    totalBalance,
-    incomeThisMonth,
-    expenseThisMonth,
-    refetch: fetchData
+    loading: sessionLoading || isLoading,
+    wallets: data?.wallets || [],
+    categories: data?.categories || [],
+    budgets: data?.budgets || [],
+    transactions: data?.transactions || [],
+    totalBalance: data?.totalBalance || 0,
+    incomeThisMonth: data?.incomeThisMonth || 0,
+    expenseThisMonth: data?.expenseThisMonth || 0,
+    refetch: mutate
   };
 }

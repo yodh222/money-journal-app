@@ -2,11 +2,31 @@
 import React from 'react';
 import AppSidebar from '@/components/layout/AppSidebar';
 import { useSupabaseData } from '@/hooks/useSupabaseData';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Edit, Trash2 } from 'lucide-react';
 import CategoryModal from '@/components/settings/CategoryModal';
+import { categoryService } from '@/services/category.service';
+import { toast } from 'sonner';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
+import { useState } from 'react';
 
 export default function BudgetsPage() {
   const { categories, budgets, loading } = useSupabaseData();
+  const [deleteData, setDeleteData] = useState<{id: string, name: string} | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const confirmDelete = async () => {
+    if (!deleteData) return;
+    setIsDeleting(true);
+    try {
+      await categoryService.deleteCategory(deleteData.id);
+      toast.success(`Kategori "${deleteData.name}" dihapus!`);
+      window.location.reload();
+    } catch (e: any) {
+      toast.error(e.message);
+      setIsDeleting(false);
+      setDeleteData(null);
+    }
+  };
 
   if (loading) {
     return (
@@ -33,12 +53,32 @@ export default function BudgetsPage() {
             categories.map(c => {
               const budget = budgets?.find(b => b.category_id === c.id);
               return (
-                <div key={c.id} className="bg-[#18181B] border border-[#27272A] p-6 rounded-xl space-y-3 hover:border-zinc-700 transition-colors">
+                <div key={c.id} className="bg-[#18181B] border border-[#27272A] p-6 rounded-xl space-y-3 hover:border-zinc-700 transition-colors group relative">
                   <div className="flex justify-between items-center">
                     <span className="text-sm font-semibold">{c.name}</span>
-                    <span className={`text-xs px-2 py-1 rounded font-medium ${c.type === 'INCOME' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-rose-500/10 text-rose-400'}`}>
-                      {c.type === 'INCOME' ? 'Pemasukan' : 'Pengeluaran'}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className={`text-xs px-2 py-1 rounded font-medium ${c.type === 'INCOME' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-rose-500/10 text-rose-400'}`}>
+                        {c.type === 'INCOME' ? 'Pemasukan' : 'Pengeluaran'}
+                      </span>
+                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity ml-2">
+                        <CategoryModal 
+                          editMode={true} 
+                          initialData={c} 
+                          triggerElement={
+                            <button className="p-1.5 bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500/20 rounded-lg transition-colors" title="Edit Kategori">
+                              <Edit className="h-4 w-4" />
+                            </button>
+                          }
+                        />
+                        <button 
+                          onClick={() => setDeleteData({ id: c.id, name: c.name })}
+                          className="p-1.5 bg-red-500/10 text-red-400 hover:bg-red-500/20 rounded-lg transition-colors"
+                          title="Hapus Kategori"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </div>
                   </div>
                   {budget ? (
                     <div className="pt-2 border-t border-[#27272A]">
@@ -60,6 +100,15 @@ export default function BudgetsPage() {
           )}
         </div>
       </main>
+
+      <ConfirmDialog
+        isOpen={!!deleteData}
+        onOpenChange={(open) => !open && setDeleteData(null)}
+        title="Hapus Kategori"
+        description={`Yakin ingin menghapus kategori "${deleteData?.name}"? Seluruh transaksi terkait mungkin akan kehilangan kategorinya.`}
+        onConfirm={confirmDelete}
+        loading={isDeleting}
+      />
     </div>
   );
 }

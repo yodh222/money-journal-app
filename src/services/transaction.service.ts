@@ -7,6 +7,7 @@ export const transactionService = {
     amount: number;
     notes?: string;
     tags?: string[];
+    metadata?: any;
   }) {
     return await apiClient.post('/api/transactions', payload);
   }

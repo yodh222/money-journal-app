@@ -1,19 +1,46 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BookOpen, User, Wallet, Bell, Shield, Loader2, LogOut, ChevronDown, ChevronUp } from 'lucide-react';
 import Link from 'next/link';
 import { useSupabaseData } from '@/hooks/useSupabaseData';
 import { supabase } from '@/lib/supabaseClient';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { walletService } from '@/services/wallet.service';
+import { categoryService } from '@/services/category.service';
 import WalletModal from '@/components/settings/WalletModal';
 import CategoryModal from '@/components/settings/CategoryModal';
 import { Tag } from 'lucide-react';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import AppSidebar from '@/components/layout/AppSidebar';
+import { toast } from 'sonner';
+import { Suspense } from 'react';
 
-export default function SettingsPage() {
+function SettingsContent() {
   const { session, loading, wallets, categories, budgets } = useSupabaseData();
   const router = useRouter();
-  const [openTab, setOpenTab] = useState<string | null>(null);
+  const searchParams = useSearchParams();
+  const [openTab, setOpenTab] = useState<string | null>(searchParams.get('tab') || null);
+  const [deleteData, setDeleteData] = useState<{id: string, name: string, type: 'wallet' | 'category'} | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const confirmDelete = async () => {
+    if (!deleteData) return;
+    setIsDeleting(true);
+    try {
+      if (deleteData.type === 'wallet') {
+        await walletService.deleteWallet(deleteData.id);
+        toast.success(`Dompet "${deleteData.name}" dihapus!`);
+      } else {
+        await categoryService.deleteCategory(deleteData.id);
+        toast.success(`Kategori "${deleteData.name}" dihapus!`);
+      }
+      window.location.reload();
+    } catch (e: any) {
+      toast.error(e.message);
+      setIsDeleting(false);
+      setDeleteData(null);
+    }
+  };
 
   if (loading) {
     return (
@@ -89,9 +116,30 @@ export default function SettingsPage() {
                   <h4 className="text-xs font-bold text-zinc-500 uppercase tracking-wider">Daftar Dompet</h4>
                   {wallets && wallets.length > 0 ? (
                     wallets.map(w => (
-                      <div key={w.id} className="flex justify-between items-center p-3 bg-[#18181B] rounded-lg border border-[#27272A]">
-                        <span className="text-sm font-medium">{w.name}</span>
-                        <span className="text-sm text-emerald-400 font-bold">Rp {Number(w.balance).toLocaleString('id-ID')}</span>
+                      <div key={w.id} className="flex justify-between items-center p-3 bg-[#18181B] rounded-lg border border-[#27272A] group">
+                        <div>
+                          <span className="text-sm font-medium">{w.name}</span>
+                          <p className="text-xs text-zinc-500">{w.type === 'CASH' ? 'Tunai (Cash)' : w.type === 'BANK_ACCOUNT' ? 'Rekening Bank' : w.type === 'E_WALLET' ? 'Dompet Digital' : w.type}</p>
+                        </div>
+                        <div className="flex items-center gap-4">
+                          <span className="text-sm text-emerald-400 font-bold">Rp {Number(w.balance).toLocaleString('id-ID')}</span>
+                          
+                          <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-2">
+                            <WalletModal 
+                              editMode 
+                              initialData={{ id: w.id, name: w.name, type: w.type, balance: w.balance }}
+                              triggerElement={
+                                <button className="text-indigo-400 hover:text-indigo-300 text-xs font-medium">Edit</button>
+                              }
+                            />
+                            <button 
+                              onClick={() => setDeleteData({ id: w.id, name: w.name, type: 'wallet' })} 
+                              className="text-red-500 hover:text-red-400 text-xs font-medium"
+                            >
+                              Hapus
+                            </button>
+                          </div>
+                        </div>
                       </div>
                     ))
                   ) : (
@@ -115,14 +163,31 @@ export default function SettingsPage() {
                     categories.map(c => {
                       const budget = budgets?.find(b => b.category_id === c.id);
                       return (
-                        <div key={c.id} className="flex justify-between items-center p-3 bg-[#18181B] rounded-lg border border-[#27272A]">
+                        <div key={c.id} className="flex justify-between items-center p-3 bg-[#18181B] rounded-lg border border-[#27272A] group">
                           <div className="flex flex-col">
                             <span className="text-sm font-medium">{c.name}</span>
                             <span className="text-xs text-zinc-500">{c.type === 'INCOME' ? 'Pemasukan' : 'Pengeluaran'}</span>
                           </div>
-                          {budget && (
-                            <span className="text-xs font-medium text-amber-400 bg-amber-400/10 px-2 py-1 rounded">Limit: Rp {Number(budget.amount).toLocaleString('id-ID')}</span>
-                          )}
+                          <div className="flex items-center gap-4">
+                            {budget && (
+                              <span className="text-xs font-medium text-amber-400 bg-amber-400/10 px-2 py-1 rounded">Limit: Rp {Number(budget.amount).toLocaleString('id-ID')}</span>
+                            )}
+                            <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-2">
+                              <CategoryModal 
+                                editMode
+                                initialData={{ id: c.id, name: c.name, type: c.type, budget_limit: budget ? Number(budget.amount) : undefined }}
+                                triggerElement={
+                                  <button className="text-indigo-400 hover:text-indigo-300 text-xs font-medium">Edit</button>
+                                }
+                              />
+                              <button 
+                                onClick={() => setDeleteData({ id: c.id, name: c.name, type: 'category' })} 
+                                className="text-red-500 hover:text-red-400 text-xs font-medium"
+                              >
+                                Hapus
+                              </button>
+                            </div>
+                          </div>
                         </div>
                       );
                     })
@@ -169,6 +234,27 @@ export default function SettingsPage() {
           </button>
         </div>
       </main>
+
+      <ConfirmDialog
+        isOpen={!!deleteData}
+        onOpenChange={(open) => !open && setDeleteData(null)}
+        title={deleteData?.type === 'wallet' ? "Hapus Dompet" : "Hapus Kategori"}
+        description={`Yakin ingin menghapus ${deleteData?.type === 'wallet' ? 'dompet' : 'kategori'} "${deleteData?.name}"?`}
+        onConfirm={confirmDelete}
+        loading={isDeleting}
+      />
     </div>
+  );
+}
+
+export default function SettingsPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-[#09090B] flex items-center justify-center">
+        <Loader2 className="h-8 w-8 text-indigo-500 animate-spin" />
+      </div>
+    }>
+      <SettingsContent />
+    </Suspense>
   );
 }

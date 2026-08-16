@@ -20,6 +20,13 @@ export const apiClient = {
     });
 
     if (!response.ok) {
+      if (response.status === 401) {
+        // If unauthorized, clear session and redirect to login
+        await supabase.auth.signOut();
+        if (typeof window !== 'undefined') {
+          window.location.href = '/login';
+        }
+      }
       const errorData = await response.json().catch(() => null);
       throw new Error(errorData?.error || `API Error: ${response.status}`);
     }
@@ -35,6 +42,19 @@ export const apiClient = {
     return this.fetchWithAuth(url, {
       method: 'POST',
       body: JSON.stringify(body),
+    });
+  },
+
+  async put(url: string, body: any) {
+    return this.fetchWithAuth(url, {
+      method: 'PUT',
+      body: JSON.stringify(body),
+    });
+  },
+
+  async delete(url: string) {
+    return this.fetchWithAuth(url, {
+      method: 'DELETE',
     });
   }
 };

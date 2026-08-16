@@ -2,11 +2,31 @@
 import React from 'react';
 import AppSidebar from '@/components/layout/AppSidebar';
 import { useSupabaseData } from '@/hooks/useSupabaseData';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Edit, Trash2 } from 'lucide-react';
 import WalletModal from '@/components/settings/WalletModal';
+import { walletService } from '@/services/wallet.service';
+import { toast } from 'sonner';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
+import { useState } from 'react';
 
 export default function WalletsPage() {
   const { wallets, loading } = useSupabaseData();
+  const [deleteData, setDeleteData] = useState<{id: string, name: string} | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const confirmDelete = async () => {
+    if (!deleteData) return;
+    setIsDeleting(true);
+    try {
+      await walletService.deleteWallet(deleteData.id);
+      toast.success(`Dompet "${deleteData.name}" dihapus!`);
+      window.location.reload();
+    } catch (e: any) {
+      toast.error(e.message);
+      setIsDeleting(false);
+      setDeleteData(null);
+    }
+  };
 
   if (loading) {
     return (
@@ -34,6 +54,25 @@ export default function WalletsPage() {
               <div key={w.id} className="bg-[#18181B] border border-[#27272A] p-6 rounded-xl space-y-3 hover:border-zinc-700 transition-colors relative overflow-hidden group">
                 <div className="flex justify-between items-center text-zinc-400 text-xs font-medium">
                   {w.type === 'CASH' ? 'Tunai' : w.type === 'BANK_ACCOUNT' ? 'Rekening Bank' : w.type === 'E_WALLET' ? 'E-Wallet' : 'Lainnya'}
+                  
+                  <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity relative z-10">
+                    <WalletModal 
+                      editMode={true} 
+                      initialData={w} 
+                      triggerElement={
+                        <button className="p-1.5 bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500/20 rounded-lg transition-colors" title="Edit Dompet">
+                          <Edit className="h-4 w-4" />
+                        </button>
+                      } 
+                    />
+                    <button 
+                      onClick={() => setDeleteData({ id: w.id, name: w.name })}
+                      className="p-1.5 bg-red-500/10 text-red-400 hover:bg-red-500/20 rounded-lg transition-colors"
+                      title="Hapus Dompet"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
                 </div>
                 <h3 className="text-lg font-semibold text-white">{w.name}</h3>
                 <p className="text-2xl font-bold tracking-tight text-emerald-400">
@@ -49,6 +88,15 @@ export default function WalletsPage() {
           )}
         </div>
       </main>
+
+      <ConfirmDialog
+        isOpen={!!deleteData}
+        onOpenChange={(open) => !open && setDeleteData(null)}
+        title="Hapus Dompet"
+        description={`Yakin ingin menghapus dompet "${deleteData?.name}"?`}
+        onConfirm={confirmDelete}
+        loading={isDeleting}
+      />
     </div>
   );
 }
