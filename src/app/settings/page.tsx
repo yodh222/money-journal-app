@@ -8,6 +8,7 @@ import { useRouter } from 'next/navigation';
 import WalletModal from '@/components/settings/WalletModal';
 import CategoryModal from '@/components/settings/CategoryModal';
 import { Tag } from 'lucide-react';
+import AppSidebar from '@/components/layout/AppSidebar';
 
 export default function SettingsPage() {
   const { session, loading, wallets, categories, budgets } = useSupabaseData();
@@ -40,21 +41,7 @@ export default function SettingsPage() {
     <div className="min-h-screen bg-[#09090B] text-[#FAFAFA] grid grid-cols-[240px_1fr] h-screen overflow-hidden">
       
       {/* KOLOM 1: SIDEBAR NAVIGASI */}
-      <aside className="bg-[#18181B] border-r border-[#27272A] p-6 flex flex-col justify-between">
-        <div className="space-y-8">
-          <div className="flex items-center gap-3">
-            <div className="h-8 w-8 rounded-lg bg-indigo-500 flex items-center justify-center shadow-lg shadow-indigo-500/20">
-              <BookOpen className="h-4 w-4 text-white" />
-            </div>
-            <span className="font-bold text-lg tracking-tight">MoneyJournal</span>
-          </div>
-          <nav className="space-y-2">
-            <Link href="/" className="flex items-center gap-3 px-3 py-2 rounded-md text-zinc-400 hover:bg-[#27272A] hover:text-white text-sm font-medium transition-all">📌 Dashboard</Link>
-            <Link href="/analytics" className="flex items-center gap-3 px-3 py-2 rounded-md text-zinc-400 hover:bg-[#27272A] hover:text-white text-sm font-medium transition-all">📊 Analytics</Link>
-            <Link href="/settings" className="flex items-center gap-3 px-3 py-2 rounded-md bg-[#27272A] text-white text-sm font-medium transition-all">⚙️ Settings</Link>
-          </nav>
-        </div>
-      </aside>
+      <AppSidebar />
 
       {/* KOLOM 2: AREA UTAMA SETTINGS */}
       <main className="p-8 space-y-8 overflow-y-auto max-w-4xl mx-auto w-full">
