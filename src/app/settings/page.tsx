@@ -211,16 +211,45 @@ function SettingsContent() {
                 </div>
               )}
 
-              <button onClick={() => toggleTab('security')} className="w-full flex items-center justify-between p-4 hover:bg-[#27272A] transition-colors">
+              <button onClick={() => toggleTab('telegram')} className="w-full flex items-center justify-between p-4 hover:bg-[#27272A] transition-colors">
                 <div className="flex items-center gap-3">
-                  <Shield className="h-5 w-5 text-zinc-400" />
-                  <span className="text-sm font-medium">Keamanan & Privasi</span>
+                  <span className="text-sm font-medium flex items-center gap-2">🤖 Integrasi Bot Telegram</span>
                 </div>
-                {openTab === 'security' ? <ChevronUp className="h-4 w-4 text-zinc-500" /> : <ChevronDown className="h-4 w-4 text-zinc-500" />}
+                {openTab === 'telegram' ? <ChevronUp className="h-4 w-4 text-zinc-500" /> : <ChevronDown className="h-4 w-4 text-zinc-500" />}
               </button>
-              {openTab === 'security' && (
-                <div className="p-4 bg-[#09090B] border-t border-[#27272A]">
-                  <p className="text-sm text-zinc-500 italic">Fitur ini sedang dalam tahap pengembangan.</p>
+              {openTab === 'telegram' && (
+                <div className="p-4 bg-[#09090B] border-t border-[#27272A] space-y-4">
+                  <p className="text-sm text-zinc-400">Tautkan akun Telegram Anda untuk mulai mengirimkan foto struk langsung ke bot. Bot akan otomatis mencatatnya sebagai pengeluaran dengan bantuan AI OCR.</p>
+                  
+                  <div className="bg-[#18181B] border border-[#27272A] p-4 rounded-lg">
+                    <h4 className="text-sm font-semibold text-white mb-2">Langkah-langkah:</h4>
+                    <ol className="list-decimal pl-5 text-sm text-zinc-400 space-y-2">
+                      <li>Buka Telegram dan cari Bot kita (misal: <strong>@MgCashFlow_bot</strong>).</li>
+                      <li>Salin ID Pengguna Anda di bawah ini.</li>
+                      <li>Kirimkan perintah ini ke Bot: <br/><code className="bg-zinc-800 text-indigo-400 px-2 py-1 rounded mt-1 inline-block">/start {session?.user?.id}</code></li>
+                    </ol>
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-bold text-zinc-500 uppercase tracking-wider">ID Pengguna (User ID) Anda</label>
+                    <div className="flex gap-2 mt-1">
+                      <input 
+                        type="text" 
+                        readOnly 
+                        value={session?.user?.id || ''} 
+                        className="bg-[#27272A] border-[#27272A] text-white text-sm rounded-lg px-3 py-2 w-full font-mono focus:outline-none"
+                      />
+                      <button 
+                        onClick={() => {
+                          navigator.clipboard.writeText(session?.user?.id || '');
+                          toast.success('ID Pengguna disalin!');
+                        }}
+                        className="bg-indigo-500 hover:bg-indigo-600 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors"
+                      >
+                        Salin
+                      </button>
+                    </div>
+                  </div>
                 </div>
               )}
             </div>
