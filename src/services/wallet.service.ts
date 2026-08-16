@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabaseClient';
+import { ledgerService } from './ledger.service';
 
 export const walletService = {
   async createWallet(payload: {
@@ -6,11 +7,11 @@ export const walletService = {
     type: string;
     balance: number;
   }) {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) throw new Error('Anda belum login');
+    const ledgerId = await ledgerService.getActiveLedgerId();
+    if (!ledgerId) throw new Error('Tidak dapat menemukan Buku Kas (Ledger).');
 
     const { data, error } = await supabase.from('wallets').insert({
-      user_id: session.user.id,
+      ledger_id: ledgerId,
       ...payload,
     }).select().single();
 
@@ -19,12 +20,12 @@ export const walletService = {
   },
 
   async getFirstWalletId() {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) throw new Error('Anda belum login');
+    const ledgerId = await ledgerService.getActiveLedgerId();
+    if (!ledgerId) return null;
 
     const { data, error } = await supabase.from('wallets')
       .select('id')
-      .eq('user_id', session.user.id)
+      .eq('ledger_id', ledgerId)
       .limit(1);
     
     if (error) throw error;

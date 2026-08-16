@@ -19,7 +19,7 @@ export function useSupabaseData() {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       if (session) {
-        fetchData(session.user.id);
+        fetchData(session.user);
       } else {
         setLoading(false);
       }
@@ -28,42 +28,57 @@ export function useSupabaseData() {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
       if (session) {
-        fetchData(session.user.id);
+        fetchData(session.user);
       }
     });
 
     return () => subscription.unsubscribe();
   }, []);
 
-  const fetchData = async (userId: string) => {
+  const fetchData = async (user: any) => {
     setLoading(true);
     try {
-      // Fetch Wallets
+      // 1. Dapatkan ledger_id (buku kas) aktif
+      const { data: ledgerMember } = await supabase
+        .from('ledger_members')
+        .select('ledger_id')
+        .eq('user_id', user.id)
+        .limit(1);
+      
+      const ledgerId = ledgerMember?.[0]?.ledger_id;
+
+      if (!ledgerId) {
+        // Jika belum ada ledger (bisa terjadi saat delay trigger), tidak perlu fetch sisanya dulu
+        setLoading(false);
+        return;
+      }
+
+      // 2. Fetch Wallets berdasarkan ledger_id
       const { data: walletsData } = await supabase
         .from('wallets')
         .select('*')
-        .eq('user_id', userId);
+        .eq('ledger_id', ledgerId);
       
-      // Fetch Categories
-      const { data: categoriesData } = await supabase
-        .from('categories')
-        .select('*')
-        .or(`user_id.eq.${userId},user_id.is.null`);
-
-      // Fetch Transactions
-      const { data: txData } = await supabase
-        .from('transactions')
-        .select(`*, categories(type, name)`)
-        .eq('user_id', userId)
-        .order('transaction_date', { ascending: false });
-
       if (walletsData) {
         setWallets(walletsData);
         const balance = walletsData.reduce((acc, curr) => acc + Number(curr.balance), 0);
         setTotalBalance(balance);
       }
 
+      // 3. Fetch Categories berdasarkan ledger_id
+      const { data: categoriesData } = await supabase
+        .from('categories')
+        .select('*')
+        .eq('ledger_id', ledgerId);
+      
       if (categoriesData) setCategories(categoriesData);
+
+      // 4. Fetch Transactions berdasarkan ledger_id
+      const { data: txData } = await supabase
+        .from('transactions')
+        .select(`*, categories(type, name)`)
+        .eq('ledger_id', ledgerId)
+        .order('transaction_date', { ascending: false });
 
       if (txData) {
         setTransactions(txData);
@@ -105,6 +120,6 @@ export function useSupabaseData() {
     totalBalance,
     incomeThisMonth,
     expenseThisMonth,
-    refetch: () => session?.user && fetchData(session.user.id)
+    refetch: () => session?.user && fetchData(session.user)
   };
 }
