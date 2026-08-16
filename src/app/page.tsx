@@ -1,15 +1,41 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { Wallet, ArrowUpRight, ArrowDownRight, Plus, BookOpen, Loader2 } from 'lucide-react';
 import CashFlowChart from '@/components/dashboard/CashFlowChart';
 import DragDropArea from '@/components/dashboard/DragDropArea';
+import TransactionModal from '@/components/dashboard/TransactionModal';
 import { useSupabaseData } from '@/hooks/useSupabaseData';
 import { useRouter } from 'next/navigation';
 
 export default function Dashboard() {
   const router = useRouter();
-  const { session, loading, totalBalance, incomeThisMonth, expenseThisMonth } = useSupabaseData();
+  const { session, loading, totalBalance, incomeThisMonth, expenseThisMonth, transactions } = useSupabaseData();
+
+  const chartData = useMemo(() => {
+    if (!transactions) return [];
+    const currentMonth = new Date().getMonth();
+    const currentYear = new Date().getFullYear();
+    const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+    const dataMap: Record<number, any> = {};
+    for (let i = 1; i <= daysInMonth; i++) {
+      dataMap[i] = { name: `${i} ${new Date().toLocaleString('id-ID', { month: 'short' })}`, income: 0, expense: 0 };
+    }
+    
+    transactions.forEach((tx: any) => {
+      const date = new Date(tx.transaction_date);
+      if (date.getMonth() === currentMonth && date.getFullYear() === currentYear) {
+        const day = date.getDate();
+        if (tx.categories?.type === 'INCOME') {
+          dataMap[day].income += Number(tx.amount);
+        } else if (tx.categories?.type === 'EXPENSE') {
+          dataMap[day].expense += Number(tx.amount);
+        }
+      }
+    });
+    
+    return Object.values(dataMap);
+  }, [transactions]);
 
   useEffect(() => {
     // Basic auth protection on client side
@@ -74,9 +100,7 @@ export default function Dashboard() {
             <h1 className="text-2xl font-bold tracking-tight">Halo, {session.user?.user_metadata?.full_name?.split(' ')[0] || 'Pengguna'}!</h1>
             <p className="text-sm text-zinc-400 mt-1">Berikut rangkuman arus keuangan Anda bulan ini.</p>
           </div>
-          <button className="flex items-center gap-2 bg-indigo-500 hover:bg-indigo-600 text-white font-medium text-sm px-4 py-2.5 rounded-lg shadow-lg shadow-indigo-500/20 transition-all active:scale-95">
-            <Plus className="h-4 w-4" /> Tambah Manual
-          </button>
+          <TransactionModal />
         </div>
 
         {/* BARIS KARTU SALDO & RINGKASAN */}
@@ -88,7 +112,7 @@ export default function Dashboard() {
                 <Wallet className="h-4 w-4 text-indigo-400" />
               </div>
             </div>
-            <p className="text-2xl font-bold tracking-tight">{formatIDR(totalBalance || 14250000)}</p>
+            <p className="text-2xl font-bold tracking-tight">{formatIDR(totalBalance)}</p>
           </div>
           <div className="bg-[#18181B] border border-[#27272A] p-6 rounded-xl space-y-3 hover:border-zinc-700 transition-colors">
             <div className="flex justify-between items-center text-zinc-400 text-xs font-medium">
@@ -97,7 +121,7 @@ export default function Dashboard() {
                 <ArrowUpRight className="h-4 w-4 text-emerald-400" />
               </div>
             </div>
-            <p className="text-2xl font-bold tracking-tight text-emerald-400">{formatIDR(incomeThisMonth || 8000000)}</p>
+            <p className="text-2xl font-bold tracking-tight text-emerald-400">{formatIDR(incomeThisMonth)}</p>
           </div>
           <div className="bg-[#18181B] border border-[#27272A] p-6 rounded-xl space-y-3 hover:border-zinc-700 transition-colors">
             <div className="flex justify-between items-center text-zinc-400 text-xs font-medium">
@@ -106,7 +130,7 @@ export default function Dashboard() {
                 <ArrowDownRight className="h-4 w-4 text-red-400" />
               </div>
             </div>
-            <p className="text-2xl font-bold tracking-tight text-red-400">{formatIDR(expenseThisMonth || 3420000)}</p>
+            <p className="text-2xl font-bold tracking-tight text-red-400">{formatIDR(expenseThisMonth)}</p>
           </div>
         </div>
 
@@ -114,7 +138,7 @@ export default function Dashboard() {
         <div className="bg-[#18181B] border border-[#27272A] p-6 rounded-xl h-[340px] hover:border-zinc-700 transition-colors relative">
           <h3 className="text-sm font-semibold tracking-wide text-zinc-300 mb-4 absolute z-10">Arus Kas Bulanan</h3>
           <div className="pt-6 h-full w-full">
-            <CashFlowChart />
+            <CashFlowChart data={chartData} />
           </div>
         </div>
       </main>

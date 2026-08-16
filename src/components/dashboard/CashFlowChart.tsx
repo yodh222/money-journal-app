@@ -3,16 +3,6 @@
 import React from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
-const data = [
-  { name: '1 Aug', income: 4000000, expense: 2400000 },
-  { name: '5 Aug', income: 3000000, expense: 1398000 },
-  { name: '10 Aug', income: 2000000, expense: 9800000 },
-  { name: '15 Aug', income: 2780000, expense: 3908000 },
-  { name: '20 Aug', income: 1890000, expense: 4800000 },
-  { name: '25 Aug', income: 2390000, expense: 3800000 },
-  { name: '31 Aug', income: 3490000, expense: 4300000 },
-];
-
 const formatCurrency = (value: number) => {
   return new Intl.NumberFormat('id-ID', {
     style: 'currency',
@@ -22,7 +12,7 @@ const formatCurrency = (value: number) => {
   }).format(value);
 };
 
-export default function CashFlowChart() {
+export default function CashFlowChart({ data }: { data: any[] }) {
   return (
     <div className="h-full w-full">
       <ResponsiveContainer width="100%" height="100%">
@@ -62,7 +52,7 @@ export default function CashFlowChart() {
           <Tooltip 
             contentStyle={{ backgroundColor: '#18181B', borderColor: '#27272A', borderRadius: '8px' }}
             itemStyle={{ color: '#FAFAFA' }}
-            formatter={(value: number) => [formatCurrency(value), '']}
+            formatter={(value: any) => [formatCurrency(value), '']}
             labelStyle={{ color: '#A1A1AA', marginBottom: '4px' }}
           />
           <Area 

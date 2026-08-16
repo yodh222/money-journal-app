@@ -1,8 +1,33 @@
+'use client';
 import React from 'react';
-import { BookOpen, User, Wallet, Bell, Shield } from 'lucide-react';
+import { BookOpen, User, Wallet, Bell, Shield, Loader2, LogOut } from 'lucide-react';
 import Link from 'next/link';
+import { useSupabaseData } from '@/hooks/useSupabaseData';
+import { supabase } from '@/lib/supabaseClient';
+import { useRouter } from 'next/navigation';
 
 export default function SettingsPage() {
+  const { session, loading } = useSupabaseData();
+  const router = useRouter();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#09090B] flex items-center justify-center">
+        <Loader2 className="h-8 w-8 text-indigo-500 animate-spin" />
+      </div>
+    );
+  }
+
+  const user = session?.user;
+  const fullName = user?.user_metadata?.full_name || 'Pengguna';
+  const email = user?.email || 'user@example.com';
+  const initials = fullName.substring(0, 2).toUpperCase();
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    router.push('/login');
+  };
+
   return (
     <div className="min-h-screen bg-[#09090B] text-[#FAFAFA] grid grid-cols-[240px_1fr] h-screen overflow-hidden">
       
@@ -34,11 +59,11 @@ export default function SettingsPage() {
           <div className="bg-[#18181B] border border-[#27272A] rounded-xl overflow-hidden">
             <div className="p-6 flex items-center gap-4 border-b border-[#27272A]">
               <div className="h-16 w-16 bg-indigo-500 rounded-full flex items-center justify-center text-xl font-bold">
-                MJ
+                {initials}
               </div>
               <div>
-                <h3 className="font-semibold text-lg text-white">Profil Pengguna</h3>
-                <p className="text-zinc-400 text-sm">user@example.com</p>
+                <h3 className="font-semibold text-lg text-white">{fullName}</h3>
+                <p className="text-zinc-400 text-sm">{email}</p>
               </div>
             </div>
             
@@ -70,8 +95,11 @@ export default function SettingsPage() {
             </div>
           </div>
           
-          <button className="text-red-400 text-sm font-medium px-4 py-2 hover:bg-red-500/10 rounded-lg transition-colors">
-            Keluar dari Aplikasi (Logout)
+          <button 
+            onClick={handleLogout}
+            className="flex items-center gap-2 text-red-400 text-sm font-medium px-4 py-2 hover:bg-red-500/10 rounded-lg transition-colors"
+          >
+            <LogOut className="h-4 w-4" /> Keluar dari Aplikasi
           </button>
         </div>
       </main>
